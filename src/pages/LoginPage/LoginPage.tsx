@@ -141,6 +141,19 @@ const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                             display: flex;
                             flex-direction: column;
                             justify-content: flex-start;
+                            
+                            animation: fadeSlideUp 1s ease-out;
+                        }
+                        
+                        @keyframes fadeSlideUp {
+                            from {
+                                transform: translateY(30px);
+                                opacity: 0;
+                            }
+                            to {
+                                transform: translateY(0);
+                                opacity: 1;
+                            }
                         }
           
                         /* desktop */
