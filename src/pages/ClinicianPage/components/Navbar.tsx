@@ -7,6 +7,7 @@ import './Navbar.css';
 import logo from "../../../assets/draft-logo.png";
 import profileIcon from "../../../assets/profile-icon-blank.png"
 
+
 const Navbar = () => {
     const [profileOpen, setProfileOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -50,15 +51,15 @@ const Navbar = () => {
 
                 <a className="navbar-brand" href="#">
                     <img src={logo} alt="Dentrack Logo" className="logo-img" />
-                    <span className='logo-text'>Dentrack</span>
+                    <span className='logo-text'>DenTrack</span>
                 </a>
 
                 {/* Desktop navigation links - shown only on desktop */}
                 {!isMobile && (
                     <div className="desktop-nav">
-                        <Link to="/clinician" className="nav-link text-white mx-2">Schedule</Link>
-                        <Link to="/clinicianRequest" className="nav-link text-white mx-2">Requests</Link>
-                        <Link to="/clinicianNotification" className="nav-link text-white mx-2">Notifications</Link>
+                        <Link to="/clinician" className="nav-link text-white mx-2">SCHEDULE</Link>
+                        <Link to="/clinicianRequest" className="nav-link text-white mx-2">REQUEST</Link>
+                        <Link to="/clinicianNotification" className="nav-link text-white mx-2">NOTIFICATION</Link>
                     </div>
                 )}
 
