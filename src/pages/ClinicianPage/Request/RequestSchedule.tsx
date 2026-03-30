@@ -1,4 +1,4 @@
-import "./Notification.css"; 
+import "./RequestSchedule.css"; 
 import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -6,15 +6,15 @@ import { useState } from "react";
 
 const RequestSchedule = () => {
     const navigate = useNavigate();
-    const [notifFilter, setNotifFilter] = useState("Unread");
+    const [schedFilter, setSchedFilter] = useState("Pending");
     
     return (
         <div> 
             <Navbar /> 
-            <div className="notif-body"> 
-                <ul className="notif-filter"> 
-                    <li className={notifFilter === "Unread" ? "filter-item active" : "filter-item"} onClick={() => setNotifFilter("Unread")}>Unread</li> 
-                    <li className={notifFilter === "All" ? "filter-item active" : "filter-item"} onClick={() => setNotifFilter("All")}>All</li> 
+            <div className="request-body"> 
+                <ul className="request-filter"> 
+                    <li className={schedFilter === "Pending" ? "filter-item active" : "filter-item"} onClick={() => setSchedFilter("Pending")}>Pending</li> 
+                    <li className={schedFilter === "Rejected" ? "filter-item active" : "filter-item"} onClick={() => setSchedFilter("Rejected")}>Rejected</li> 
                 </ul> 
                 <Outlet />
             </div> 

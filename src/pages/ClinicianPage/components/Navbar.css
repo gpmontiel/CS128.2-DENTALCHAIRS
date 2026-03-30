@@ -1,13 +1,14 @@
 /* Desktop navigation styles */
 .desktop-nav {
     display: flex;
-    gap: 50px;
+    gap: 100px;
     margin: 0 auto;
 }
 
 .desktop-nav a {
     text-decoration: none;
     transition: opacity 0.3s ease;
+    font-size: 15px;
 }
 
 .desktop-nav a:hover {

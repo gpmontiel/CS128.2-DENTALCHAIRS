@@ -2,14 +2,14 @@ body {
     background-color: #f5f5f7;
 }
 
-.schedule-body { 
+.notif-body { 
     display: flex; 
     padding-top: 70px; 
     justify-content: center; 
     align-items: center; 
 } 
 
-.schedule-filter { 
+.notif-filter { 
     display: flex; 
     gap: 10px;
     background-color: #ffffff; 
@@ -44,16 +44,15 @@ body {
 }
 
 @media (min-width: 1024px) {
-    .schedule-filter {
+    .notif-filter {
         width: 500px;
     }
 }
 
-.schedule-filter li { 
+.notif-filter li { 
     list-style: none; 
     color:#493979;
 } 
-
 
 .add-btn {
     position: fixed;
