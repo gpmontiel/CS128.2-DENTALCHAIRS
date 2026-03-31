@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../utils/supabase.ts";
-import {Container, Row, Col, Form, Button, InputGroup, Toast, ToastBody, ToastContainer} from "react-bootstrap";
-import { FaEnvelope, FaExclamationTriangle } from "react-icons/fa";
-import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import "./LoginPage.css"
+import { Box, Container, TextField, Button, Typography, InputAdornment,
+    IconButton, Snackbar, Alert, Paper,} from "@mui/material";
+import { Visibility, VisibilityOff, WarningAmber } from "@mui/icons-material";
 
 interface LoginPageProps {
     onLoginSuccess: (profile: any) => void;
@@ -12,33 +11,28 @@ interface LoginPageProps {
 
 const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     const navigate = useNavigate();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
 
-    const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log("Login attempt:", email, password);
-
-        // Supabase Authentication
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
+            email,
+            password,
         });
 
         if (error || !data.user) {
-            console.log("Login failed:", error?.message);
             setToastMessage("Incorrect username or password.");
             setShowToast(true);
             return;
         }
 
-        console.log("Auth success:", data.user);
-
-        // Profile fetching for roles
         const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("*")
@@ -51,8 +45,6 @@ const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
             return;
         }
 
-        console.log("Profile fetched:", profile);
-
         onLoginSuccess(profile);
 
         if (profile.role_id === 1) navigate("/admin");
@@ -61,174 +53,163 @@ const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         else alert("Unknown role");
     };
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(prevShowPassword => !prevShowPassword);
-    };
-
     return (
-        <Container fluid style={{ backgroundColor: "#4A3878", minHeight: "100vh", padding: 0, fontFamily: "Inter, sans-serif" }}>
-
-            {/* toast notification */}
-            <ToastContainer className="p-3" position="top-center">
-                <Toast
-                    onClose={() => setShowToast(false)}
-                    show={showToast}
-                    delay={10000}
-                    autohide
-                    style={{
+        <Container
+            maxWidth={false}
+            sx={{
+                minHeight: "100vh",
+                background: "linear-gradient(330deg, hsla(277, 42%, 38%, 1) 15%, hsla(257, 36%, 35%, 1) 52%)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "Inter, sans-serif",
+                px: 5,
+            }}
+        >
+            {/* warning */}
+            <Snackbar
+                open={showToast}
+                autoHideDuration={3000}
+                onClose={() => setShowToast(false)}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                sx={{ mt: 2 }}
+            >
+                <Alert
+                    icon={<WarningAmber />}
+                    severity="warning"
+                    sx={{
                         backgroundColor: "#FFF4E5",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        borderRadius: "8px",
+                        color: "#663C01",
+                        fontWeight: 500,
                     }}
                 >
-                    <ToastBody className="d-flex align-items-center justify-content-center gap-3">
-                        <FaExclamationTriangle style={{ color: "#EF7B2B" }} size={20} />
-                        <span style={{ color: "#663C01", fontWeight: "500"}}>
-                            {toastMessage}
-                        </span>
-                    </ToastBody>
-                </Toast>
-            </ToastContainer>
+                    {toastMessage}
+                </Alert>
+            </Snackbar>
 
-            <Row className="justify-content-center pt-3 px-3" style={{ margin: 0, minHeight: "100vh" }}>
-                <Col xs={12} sm={12} md={9} lg={6} xl={5} style={{ padding: 0, display: "flex", flexDirection: "column" }}>
-                    <div className="text-center mb-4" style={{ paddingTop: "2rem" }}>
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "10px",
-                            }}
-                        >
-                            <img src="src/assets/logo-light.png" alt="Logo" style={{ width: "50px" }} />
-                            <h1 style={{
-                                    color: "#E9B0F8",
-                                    fontFamily: "Poppins, sans-serif",
-                                    fontWeight: 700,
-                                    margin: 0,
-                                    fontSize: "2.5rem",
-                                }}
-                            >
-                                DenTrack
-                            </h1>
-                        </div>
+            {/* logo and title */}
+            <Box textAlign="center" mb={5}>
+                <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                    <img src="/src/assets/logo-light.png" alt="Logo" width={70} />
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            color: "#E9B0F8",
+                            fontFamily: "Poppins, sans-serif",
+                            fontWeight: 700,
+                        }}
+                    >
+                        DenTrack
+                    </Typography>
+                </Box>
 
-                        <p className="text-center mx-4"
-                            style={{
-                                color: "white",
-                                fontSize: "0.75rem",
-                                fontWeight: 500,
-                                marginTop: "20px",
-                                marginBottom: "15px",
-                            }}
-                        >
-                            Dental Chair Assignment & Student Attendance
-                            Monitoring and Management System
-                        </p>
-                    </div>
+                <Typography
+                    sx={{
+                        color: "white",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        mt: 2
+                    }}
+                >
+                    Dental Chair Assignment & Student Attendance <br/>
+                    Monitoring and Management System
+                </Typography>
+            </Box>
 
-                    <style>
-                        {`
-                        /* mobile (default) */
-                        .login-card-mobile {
-                            background-color: white;
-                            border-top-left-radius: 30px;
-                            border-top-right-radius: 30px;
-                            border-bottom-left-radius: 0;
-                            border-bottom-right-radius: 0;
-                            flex: 1;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: flex-start;
-                            
-                            animation: fadeSlideUp 1s ease-out;
-                        }
-                        
-                        @keyframes fadeSlideUp {
-                            from {
-                                transform: translateY(30px);
-                                opacity: 0;
-                            }
-                            to {
-                                transform: translateY(0);
-                                opacity: 1;
-                            }
-                        }
-          
-                        /* desktop */
-                        @media (min-width: 800px) {
-                            .login-card-mobile {
-                                background-color: #FAF4FF !important;
-                                border-radius: 20px !important;
-                                margin: 0 1rem !important;
-                                min-height: auto !important;
-                                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-                                padding: 1.5rem !important;
-                                flex: none !important;
-                            }
-                        }
-                    `}
-                    </style>
+            {/* login card */}
+            <Paper
+                elevation={3}
+                sx={{
+                    width: "100%",
+                    maxWidth: 500,
+                    borderRadius: { xs: "30px", md: "20px" },
+                    backgroundColor: { xs: "white", md: "#FAF4FF" },
+                    p: { xs: 3, sm: 4, md: 5 },
+                    animation: "fadeSlideUp 0.8s ease",
+                }}
+            >
+                <Typography variant="h5" textAlign="center" fontWeight="bold" fontSize="30px">
+                    Welcome Back!
+                </Typography>
 
-                    <div className="login-card-mobile px-3 px-lg-0">
-                        <div style={{ maxWidth: "500px", margin: "0 auto", width: "100%", padding: "2rem 1rem" }}>
-                            <h1
-                                className="fw-bold text-center mb-1 mt-1"
-                                style={{ fontSize: "2.3rem" }}
-                            >
-                                Welcome Back!
-                            </h1>
-                            <p className="text-center mb-4" style={{ fontSize: "0.8rem", color: "#555" }}>
-                                Please enter your login credentials
-                            </p>
+                <Typography
+                    textAlign="center"
+                    sx={{ fontSize: "0.8rem", color: "#555", mb: 3 }}
+                >
+                    Please enter your login credentials
+                </Typography>
 
-                            <Form onSubmit={handleLogin}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label style={{ fontWeight: "600"}}>Email</Form.Label>
-                                    <InputGroup>
-                                        <Form.Control required
-                                                      type="email"
-                                                      placeholder="Enter your email"
-                                                      value={email}
-                                                      onChange={(e) => setEmail(e.target.value)}
-                                        />
-                                        <InputGroup.Text style={{ backgroundColor: "white" }}>
-                                            <FaEnvelope color="#4A3878" />
-                                        </InputGroup.Text>
-                                    </InputGroup>
-                                </Form.Group>
+                <Box component="form" onSubmit={handleLogin}>
+                    <TextField
+                        fullWidth
+                        required
+                        label="Email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        margin="normal"
+                    />
 
-                                <Form.Group className="mb-5">
-                                    <Form.Label style={{ fontWeight: "600"}}>Password</Form.Label>
-                                    <InputGroup>
-                                        <Form.Control required
-                                                      type={showPassword ? "text" : "password"}
-                                                      placeholder="Enter your password"
-                                                      value={password}
-                                                      onChange={(e) => setPassword(e.target.value)}
-                                        />
-                                        <InputGroup.Text
-                                            style={{ backgroundColor: "white", cursor: "pointer" }}
-                                            onClick={togglePasswordVisibility}
-                                        >
+                    <TextField
+                        fullWidth
+                        required
+                        label="Password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        margin="normal"
+                        sx={{ mb: 5 }}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowPassword(!showPassword)}>
                                             {showPassword ? (
-                                                <IoMdEyeOff color="#4A3878" size={20} />
+                                                <VisibilityOff sx={{ color: "#4A3878" }} />
                                             ) : (
-                                                <IoMdEye color="#4A3878" size={20} />
+                                                <Visibility sx={{ color: "#4A3878" }} />
                                             )}
-                                        </InputGroup.Text>
-                                    </InputGroup>
-                                </Form.Group>
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
 
-                                <Button type="submit" className="w-100 login-btn">
-                                    Login
-                                </Button>
-                            </Form>
-                        </div>
-                    </div>
-                </Col>
-            </Row>
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#4A3878",
+                            py: 1.5,
+                            fontWeight: "bold",
+                            borderRadius: "10px",
+                            "&:hover": {
+                                backgroundColor: "#37295c",
+                            },
+                        }}
+                    >
+                        Login
+                    </Button>
+                </Box>
+            </Paper>
+
+            <style>
+                {`
+                @keyframes fadeSlideUp {
+                    from {
+                        transform: translateY(30px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                  }
+                `}
+            </style>
         </Container>
     );
 };
