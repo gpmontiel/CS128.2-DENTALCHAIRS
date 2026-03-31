@@ -1,5 +1,6 @@
-body {
-    background-color: #f5f5f7;
+.request-sched-container {
+    background-color:  #f5f5f7;
+    min-height: 100vh;
 }
 
 .request-body { 
@@ -80,4 +81,9 @@ body {
     background-color: #382d5f;
     transform: scale(1.05);
     transition: all 0.2s ease;
+}
+
+.sched-display-container {
+    display: flex;
+    border: 1px solid;
 }
