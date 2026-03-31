@@ -1,5 +1,6 @@
-body {
+.notif-container {
     background-color: #f5f5f7;
+    min-height: 100vh;
 }
 
 .notif-body { 

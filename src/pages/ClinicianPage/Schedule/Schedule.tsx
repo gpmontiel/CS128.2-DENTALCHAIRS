@@ -9,7 +9,7 @@ const Schedule = () => {
     const [schedFilter, setSchedFilter] = useState("Current");
     
     return (
-        <div> 
+        <div className="sched-container"> 
             <Navbar /> 
             <div className="schedule-body"> 
                 <ul className="schedule-filter"> 

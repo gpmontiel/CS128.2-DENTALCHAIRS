@@ -1,11 +1,8 @@
-body {
-    background-color: #f5f5f7;
-}
-
 .request-form-container {
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
+    background-color: #f5f5f7;
 }
 
 .request-form-navbar {
@@ -141,12 +138,13 @@ body {
     margin-bottom: 15px;
     border-radius: 10px;
     border: 1px solid #b9b8bc;
-    color: #b9b8bc;
+    color: #555;
 }
 
 .form-input-titles {
     color: #493979;
     font-size: 15px;
+    font-weight: 500;
 }
 
 .date-shift {
@@ -201,6 +199,11 @@ body {
 
 .confirm-btn:hover, .submit-btn:hover {
     background-color: #2d2449;
+}
+
+.confirm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .submit-modal, .submit-modal-overlay {

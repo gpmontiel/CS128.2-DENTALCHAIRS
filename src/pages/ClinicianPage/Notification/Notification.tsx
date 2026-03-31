@@ -9,7 +9,7 @@ const RequestSchedule = () => {
     const [notifFilter, setNotifFilter] = useState("Unread");
     
     return (
-        <div> 
+        <div className="notif-container"> 
             <Navbar /> 
             <div className="notif-body"> 
                 <ul className="notif-filter"> 

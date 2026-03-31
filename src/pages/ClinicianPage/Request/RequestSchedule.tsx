@@ -9,7 +9,7 @@ const RequestSchedule = () => {
     const [schedFilter, setSchedFilter] = useState("Pending");
     
     return (
-        <div> 
+        <div className="request-sched-container"> 
             <Navbar /> 
             <div className="request-body"> 
                 <ul className="request-filter"> 
@@ -18,6 +18,15 @@ const RequestSchedule = () => {
                 </ul> 
                 <Outlet />
             </div> 
+
+            {/* <div className="sched-display-container">
+                <div className="date-container">
+                    <p>12</p>
+                    <p>Mar</p>
+                    <p>PM</p>
+                </div>
+                <p>Hey</p>
+            </div> */}
 
             <div>
                 <button className="add-btn"  onClick={() => navigate("/requestForm")}>+</button>
