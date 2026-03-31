@@ -1,151 +1,219 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
-import { Offcanvas } from "bootstrap";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import './Navbar.css';
-import logo from "../../../assets/draft-logo.png";
-import profileIcon from "../../../assets/profile-icon-blank.png"
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MenuIcon from '@mui/icons-material/Menu';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import { useNavigate } from "react-router-dom";
+import logo from "../../../assets/logo-light.png";
 
+interface Page {
+    name: string;
+    path: string;
+}
 
-const Navbar = () => {
-    const [profileOpen, setProfileOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [roleOpen, setRoleOpen] = useState(false);
+interface Setting {
+    name: string;
+    path?: string;
+}
+
+const pages: Page[] = [
+    { name: 'Schedule', path: '/clinician' },
+    { name: 'Request', path: '/clinicianRequest' },
+    { name: 'Notification', path: '/clinicianNotification' },
+];
+
+const settings: Setting[] = [
+    { name: 'Switch Roles' },
+    { name: 'Profile', path: '/clinicianProfile' },
+    { name: 'Logout', path: '/login' },
+];
+
+const ResponsiveAppBar: React.FC = () => {
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+    const [openDrawer, setOpenDrawer] = React.useState(false);
+    const [roleOpen, setRoleOpen] = React.useState(false);
 
-    const handleNavClick = (path: string) => {
-        const offcanvasElement = document.getElementById('sidebarDrawer');
-        const bsOffcanvas = Offcanvas.getInstance(offcanvasElement);
-        
-        if (bsOffcanvas) {
-            bsOffcanvas.hide();
-        }
+    const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorElUser(event.currentTarget);
+    };
 
-        navigate(path);
+    const handleCloseUserMenu = () => {
+        setAnchorElUser(null);
+        setRoleOpen(false);
     };
 
     return (
-        <nav className="navbar custom-navbar fixed-top">
-            <div className="container-fluid">
-                {/* Show hamburger only on mobile */}
-                {isMobile && (
-                    <button 
-                        className="navbar-toggler navbar-dark" 
-                        type="button" 
-                        data-bs-toggle="offcanvas" 
-                        data-bs-target="#sidebarDrawer" 
-                        aria-controls="sidebarDrawer"
-                    >
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
-                )}
+        <AppBar position="static" sx={{ backgroundColor: "#493979" }}>
+        <Container maxWidth="xl">
+            <Toolbar disableGutters>
 
-                <a className="navbar-brand" href="#">
-                    <img src={logo} alt="Dentrack Logo" className="logo-img" />
-                    <span className='logo-text'>DenTrack</span>
-                </a>
-
-                {/* Desktop navigation links - shown only on desktop */}
-                {!isMobile && (
-                    <div className="desktop-nav">
-                        <Link to="/clinician" className="nav-link text-white mx-2">SCHEDULE</Link>
-                        <Link to="/clinicianRequest" className="nav-link text-white mx-2">REQUEST</Link>
-                        <Link to="/clinicianNotification" className="nav-link text-white mx-2">NOTIFICATION</Link>
-                    </div>
-                )}
-
-                {/* Profile button - always visible */}
-                <div className="profile">
-                    <button 
-                        className="profile-btn"
-                        onClick={() => setProfileOpen(!profileOpen)}
-                    >
-                        <img src={profileIcon} alt="Profile Icon" className="profile-img" />
-                    </button>
-                    {profileOpen && (
-                        <div className="dropdown-menu show position-absolute end-0 mt-2">
-            
-                        {/* SWITCH ROLES */}
-                        <div>
-                            <button 
-                                className={`switch-role-btn ${roleOpen ? "active" : ""}`}
-                                onClick={() => setRoleOpen(!roleOpen)}
-                            >
-                                Switch Roles
-                                <span className={`arrow ${roleOpen ? "open" : ""}`}>
-                                    ▼
-                                </span>
-                            </button>
-
-                            {roleOpen && (
-                                <div className="role-dropdown">
-                                    <button className="role-item">Clinician</button>
-
-                                    <button 
-                                        className="role-item"
-                                        onClick={() => navigate("/chair-manager")}
-                                    >
-                                        Chair Manager
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                            <button className="view-profile-btn" onClick={() => {
-                                navigate("/clinicianProfile");
-                                setProfileOpen(false);
-                            }}>Profile
-                            </button>
-
-                            <button className="logout-btn" onClick={() => navigate("/login")}>Logout</button>
-                        </div>
-                    )}
-                </div>
-
-                {/*Sidebar - only used on mobile */}
-                <div 
-                    className="offcanvas offcanvas-start text-bg-dark" 
-                    tabIndex="-1" 
-                    id="sidebarDrawer" 
-                    aria-labelledby="sidebarLabel"
+            {/* MOBILE HAMBURGER */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+                <IconButton
+                size="large"
+                onClick={() => setOpenDrawer(true)}
+                color="inherit"
                 >
-                    <div className="offcanvas-header">
-                        <h5 className="offcanvas-title" id="sidebarLabel">Menu</h5>
-                        <button 
-                            type="button" 
-                            className="btn-close btn-close-white" 
-                            data-bs-dismiss="offcanvas" 
-                            aria-label="Close"
-                        ></button>
-                    </div>
-                    <div className="offcanvas-body">
-                        <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
-                            <button onClick={() => handleNavClick("/clinician")} className="nav-link">
-                                Schedule
-                            </button>
+                <MenuIcon />
+                </IconButton>
 
-                            <button onClick={() => handleNavClick("/clinicianRequest")} className="nav-link">
-                                Requests
-                            </button>
+                <Drawer
+                anchor="left"
+                open={openDrawer}
+                onClose={() => setOpenDrawer(false)}
+                PaperProps={{
+                    sx: {
+                    backgroundColor: "#493979",
+                    color: "white",
+                    }
+                }}
+                >
+                <Box sx={{ width: 250 }}>
+                    <Typography sx={{ p: 2, fontWeight: 600 }}>
+                    Menu
+                    </Typography>
 
-                            <button onClick={() => handleNavClick("/clinicianNotification")} className="nav-link">
-                                Notifications
-                            </button>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+                    <List>
+                    {pages.map((page) => (
+                        <ListItem key={page.name} disablePadding>
+                        <ListItemButton onClick={() => navigate(page.path)}>
+                            <ListItemText primary={page.name} />
+                        </ListItemButton>
+                        </ListItem>
+                    ))}
+                    </List>
+                </Box>
+                </Drawer>
+            </Box>
+
+            {/* LOGO (CENTER MOBILE, LEFT DESKTOP) */}
+            <Box
+                sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                flexGrow: 1,
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                }}
+            >
+                <img src={logo} alt="Logo" style={{ height: "28px" }} />
+                <Typography
+                sx={{
+                    fontFamily: "Poppins, sans-serif",
+                    fontWeight: 700,
+                    color: "#E9B0F8",
+                }}
+                >
+                DenTrack
+                </Typography>
+            </Box>
+
+            {/* DESKTOP NAV */}
+            <Box sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    flexGrow: 1,
+                    gap: 10,
+                }}>
+                {pages.map((page) => (
+                <Button
+                    key={page.name}
+                    onClick={() => navigate(page.path)}
+                    sx={{ color: 'white' }}
+                >
+                    {page.name}
+                </Button>
+                ))}
+            </Box>
+
+            {/* USER MENU */}
+            <Box sx={{ flexGrow: 0, ml: 2 }}>
+                <Tooltip title="User Menu">
+                <IconButton onClick={handleOpenUserMenu}>
+                    <Avatar />
+                </IconButton>
+                </Tooltip>
+
+                <Menu
+                anchorEl={anchorElUser}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+                sx={{
+                    mt: '15px',
+                    '& .MuiPaper-root': {
+                    backgroundColor: '#493979',
+                    color: 'white',
+                    },
+                }}
+                >
+                {settings.map((setting) => (
+                    <Box key={setting.name}>
+                    {setting.name === 'Switch Roles' ? (
+                        <>
+                        <MenuItem onClick={() => setRoleOpen(!roleOpen)}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                            <Typography>Switch Roles</Typography>
+                            <Typography sx={{ transform: roleOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                ▼
+                            </Typography>
+                            </Box>
+                        </MenuItem>
+
+                        {roleOpen && (
+                            <Box sx={{ pl: 2 }}>
+                            <MenuItem
+                                onClick={() => {
+                                navigate('/clinician');
+                                handleCloseUserMenu();
+                                }}
+                            >
+                                Clinician
+                            </MenuItem>
+
+                            <MenuItem
+                                onClick={() => {
+                                navigate('/chair-manager');
+                                handleCloseUserMenu();
+                                }}
+                            >
+                                Chair Manager
+                            </MenuItem>
+                            </Box>
+                        )}
+                        </>
+                    ) : (
+                        <MenuItem
+                        onClick={() => {
+                            if (setting.path) navigate(setting.path);
+                            handleCloseUserMenu();
+                        }}
+                        >
+                        {setting.name}
+                        </MenuItem>
+                    )}
+                    </Box>
+                ))}
+                </Menu>
+            </Box>
+
+            </Toolbar>
+        </Container>
+        </AppBar>
     );
 };
 
-export default Navbar;
+export default ResponsiveAppBar;

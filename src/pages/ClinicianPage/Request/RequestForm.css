@@ -38,6 +38,8 @@ body {
 
 .logo-text {
     font-weight: bold;
+    color: #E9B0F8;
+    font-family: sa;
 }
 
 .request-form-body {
@@ -197,6 +199,65 @@ body {
     cursor: pointer;
 }
 
-.confirm-btn:hover {
-    background-color: #382d5f;
+.confirm-btn:hover, .submit-btn:hover {
+    background-color: #2d2449;
+}
+
+.submit-modal, .submit-modal-overlay {
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+}
+
+.submit-modal-overlay {
+    background: rgba(49,49,49,0.8);
+}
+
+.submit-modal-content {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1.4;
+    background: #f1f1f1;
+    padding: 30px 18px;
+    border-radius: 3px;
+    max-width: 400px;
+    min-width: 330px;
+    align-items: center;
+    border: 3px solid #493979;
+    color: #493979;
+    text-align: center;
+    border-radius: 20px;
+    gap: 5px;
+}
+
+.submit-modal-btn {
+    display: flex;
+    gap: 10px;
+}
+
+.submit-modal-btn button {
+    flex: 1 ;
+    width: 140px;
+    height: 40px;
+    border-radius: 20px;
+}
+
+.go-back-btn {
+    background-color: #f1f1f1;
+    border: 1px solid #493979;
+    color: #493979;
+}
+
+.submit-btn, .go-back-btn:hover {
+    background-color:#493979;
+    color: white;
+    border: 1px solid #493979;
 }

@@ -4,7 +4,6 @@ body {
 
 .notif-body { 
     display: flex; 
-    padding-top: 70px; 
     justify-content: center; 
     align-items: center; 
 } 
