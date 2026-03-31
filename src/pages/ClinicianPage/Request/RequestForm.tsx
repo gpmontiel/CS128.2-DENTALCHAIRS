@@ -32,7 +32,7 @@ const RequestForm = () => {
 
         const newSched = {
             student_id: userId,
-            section_id: chosenSection,
+            section_id: Number(chosenSection),
             date: chosenDate,
             shift: shift,
             status: "Pending"
