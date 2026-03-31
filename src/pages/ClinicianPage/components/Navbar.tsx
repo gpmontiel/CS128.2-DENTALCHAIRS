@@ -141,7 +141,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                                 <List sx={{ flexGrow: 1, pl: 1.5 }}>
                                     <ListItem disablePadding>
-                                        <ListItemButton onClick={() => navigate("/schedule")}>
+                                        <ListItemButton onClick={() => navigate("/clinician")}>
                                             <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
                                                 <ScheduleIcon />
                                             </ListItemIcon>
@@ -150,7 +150,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     </ListItem>
 
                                     <ListItem disablePadding>
-                                        <ListItemButton onClick={() => navigate("/request")}>
+                                        <ListItemButton onClick={() => navigate("/clinicianRequest")}>
                                             <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
                                                 <ThreePIcon />
                                             </ListItemIcon>
