@@ -8,6 +8,7 @@ import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx"
 import ClinicianNotification from "./pages/ClinicianPage/Notification/Notification.tsx";
 import ClinicianProfile from "./pages/ClinicianPage/Profile/Profile.tsx";
 import RequestForm from './pages/ClinicianPage/Request/RequestForm.tsx';
+import Dashboard from "./pages/ChairManagerPage/Dashboard.tsx";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -25,6 +26,9 @@ function App() {
                 <Route path="/clinicianNotification" element={<ClinicianNotification />} />
                 <Route path="/clinicianProfile" element={<ClinicianProfile />} />
                 <Route path="/requestForm" element={<RequestForm />} />
+
+                <Route path="/chair-manager-home" element={<Dashboard />} />
+
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>

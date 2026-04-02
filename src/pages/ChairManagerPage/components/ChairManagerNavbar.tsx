@@ -1,27 +1,15 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import MenuIcon from '@mui/icons-material/Menu';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-light.png";
+import { AppBar, Box, Toolbar, Typography, Container, Avatar, Drawer, Badge, Divider, ListItemIcon, Menu, MenuItem, IconButton, Button, List, ListItem, ListItemButton, ListItemText} from "@mui/material";
+import MenuIcon from '@mui/icons-material/Menu';
 import EditIcon from '@mui/icons-material/Edit';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
-import {Badge, Divider, ListItemIcon, Menu, MenuItem} from "@mui/material";
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import HistoryIcon from '@mui/icons-material/History';
+import ChairIcon from '@mui/icons-material/Chair';
+import { supabase } from "../../../utils/supabase.ts";
 
 interface Page {
     name: string;
@@ -30,8 +18,8 @@ interface Page {
 }
 
 const pages: Page[] = [
-    { name: 'Schedule', path: '/clinician', icon: <ScheduleIcon fontSize="small" /> },
-    { name: 'Request Dental Chair', path: '/clinicianRequest', icon: <ThreePIcon fontSize="small" /> },
+    { name: 'Manage Requests', path: '/clinician', icon: <ChairIcon fontSize="small" /> },
+    { name: 'View History', path: '/clinicianRequest', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 const ResponsiveAppBar: React.FC = () => {
@@ -50,8 +38,78 @@ const ResponsiveAppBar: React.FC = () => {
         setAnchorEl(null);
     };
 
+    const [firstName, setFirstName] = React.useState<string>("User");
+    const [lastName, setLastName] = React.useState<string>("User");
+    const [userInitial, setUserInitial] = React.useState<string>("U");
+    const [userRole, setUserRole] = React.useState<string>("");
+
+    React.useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+                if (userError) throw userError;
+
+                if (user) {
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('first_name, last_name, role_id')
+                        .eq('profile_id', user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.log("Error fetching profile:", profileError);
+                        return;
+                    }
+
+                    if (profile) {
+                        const firstName = profile.first_name || user.email?.split('@')[0] || "User";
+                        const lastName = profile.last_name || "";
+                        setFirstName(firstName);
+                        setLastName(lastName);
+
+                        setUserInitial(firstName.charAt(0).toUpperCase());
+
+                        if (profile.role_id) {
+                            const { data: role, error: roleError } = await supabase
+                                .from('roles')
+                                .select('role')
+                                .eq('role_id', profile.role_id)
+                                .single();
+
+                            if (roleError) {
+                                console.log("Error fetching role:", roleError);
+                                setUserRole("");
+                            } else {
+                                setUserRole(role.role || "");
+                            }
+                        } else {
+                            setUserRole("");
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
+
+
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error("Logout error:", error.message);
+            return;
+        }
+
+        navigate("/");
+    };
+
     return (
-        <AppBar position="static" sx={{ backgroundColor: "#493979", py: 1 }}>
+        <AppBar position="static" elevation={0} sx={{ backgroundColor: "#493979", py: 1 }}>
             <Container maxWidth="xl">
                 <Toolbar disableGutters sx={{ position: "relative" }}>
                     {/* MOBILE HAMBURGER */}
@@ -77,7 +135,7 @@ const ResponsiveAppBar: React.FC = () => {
                                 },
                             }}
                         >
-                            <Box sx={{ width: 260, display: "flex", flexDirection: "column", height: "100%" }}>
+                            <Box sx={{ width: 230, display: "flex", flexDirection: "column", height: "100%" }}>
                                 <Box sx={{
                                     display: "flex",
                                     flexDirection: "column",
@@ -95,11 +153,11 @@ const ResponsiveAppBar: React.FC = () => {
                                             fontSize: "2rem"
                                         }}
                                     >
-                                        U
+                                        {userInitial}
                                     </Avatar>
 
                                     <Typography sx={{ fontWeight: 600, mb: 2, textAlign: "center" }}>
-                                        Hello, User!
+                                        Hello, {firstName}!
                                     </Typography>
 
                                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, justifyItems: "center" }}>
@@ -123,18 +181,18 @@ const ResponsiveAppBar: React.FC = () => {
                                             variant="contained"
                                             size="small"
                                             disableElevation
-                                            onClick={() => navigate("/chair-manager-home")}
+                                            onClick={() => navigate("/clinician")}
                                             sx={{
                                                 color: "white",
                                                 backgroundColor: "#4c438e",
                                                 borderRadius: 5,
                                                 textTransform: "none",
-                                                px: 2,
+                                                px: 4,
                                                 py: 1.5,
                                             }}
                                             startIcon={<SwitchAccountIcon fontSize="small" />}
                                         >
-                                            Switch to Chair Manager
+                                            Switch to Clinician
                                         </Button>
                                     </Box>
                                 </Box>
@@ -143,18 +201,18 @@ const ResponsiveAppBar: React.FC = () => {
                                     <ListItem disablePadding>
                                         <ListItemButton onClick={() => navigate("/clinician")}>
                                             <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
-                                                <ScheduleIcon />
+                                                <ChairIcon />
                                             </ListItemIcon>
-                                            <ListItemText primary="Schedule" />
+                                            <ListItemText primary="Manage Requests" />
                                         </ListItemButton>
                                     </ListItem>
 
                                     <ListItem disablePadding>
                                         <ListItemButton onClick={() => navigate("/clinicianRequest")}>
                                             <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
-                                                <ThreePIcon />
+                                                <HistoryIcon />
                                             </ListItemIcon>
-                                            <ListItemText primary="Request" />
+                                            <ListItemText primary="View History" />
                                         </ListItemButton>
                                     </ListItem>
                                 </List>
@@ -163,7 +221,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        onClick={() => {/* handle logout */}}
+                                        onClick={handleLogout}
                                         sx={{
                                             backgroundColor: "rgba(255, 255, 255, 0.2)",
                                             borderRadius: 4,
@@ -248,7 +306,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     }
                                 }}
                             >
-                                <NotificationsIcon sx={{ fontSize: 32, color: "white" }} />
+                                <NotificationsIcon sx={{ fontSize: { xs: 26, sm: 30, md: 32 }, color: "white" }} />
                             </Badge>
                         </IconButton>
 
@@ -317,10 +375,10 @@ const ResponsiveAppBar: React.FC = () => {
                             {/* User info header */}
                             <Box sx={{ px: 2, py: 1 }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                    KANG SEULGI
+                                    {lastName}, {firstName}
                                 </Typography>
                                 <Typography variant="caption" color="#493979" sx={{ mt: 0.5, display: 'block', fontWeight: 500 }}>
-                                    Clinician
+                                    {userRole}
                                 </Typography>
                             </Box>
 
@@ -331,7 +389,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     <SwitchAccountIcon fontSize="small" sx={{ color: '#4c438e' }} />
                                 </ListItemIcon>
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                    Switch to Chair Manager
+                                    Switch to Clinician
                                 </Typography>
                             </MenuItem>
 
@@ -346,7 +404,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                             <Divider sx={{ my: 0.5 }} />
 
-                            <MenuItem onClick={handleClose}>
+                            <MenuItem onClick={handleLogout}>
                                 <ListItemIcon>
                                     <LogoutIcon fontSize="small" sx={{ color: 'error.main'}} />
                                 </ListItemIcon>
