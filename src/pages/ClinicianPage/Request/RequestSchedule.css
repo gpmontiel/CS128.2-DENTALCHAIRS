@@ -85,5 +85,45 @@
 
 .sched-display-container {
     display: flex;
-    border: 1px solid;
+    padding: 10px;
+    margin: 20px auto;
+    border-radius: 20px;
+    gap: 20px;
+    background-color: white;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 700px;
+    align-items: center;
+}
+
+.sched-display-container p {
+    margin: 0;
+}
+
+.date-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #dfdee1;
+    border-radius: 10px;
+    padding: 10px;
+    width: auto;
+    justify-content: center;
+    gap: 5px;
+    color: #707070;
+}
+
+.date-container p {
+    margin: 0;
+    line-height: 1;
+}
+
+.shift-display {
+    display: flex;
+    background-color: #dfdee1;
+    padding: 3px;
+    width: 60px;
+    justify-content: center;
+    border-radius: 15px;
+    align-items: center;
 }
