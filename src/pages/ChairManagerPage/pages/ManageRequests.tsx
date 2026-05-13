@@ -1,6 +1,6 @@
 import {Box, Typography, Button, Card, LinearProgress, Divider, Avatar } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {useLocation, useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import TodayIcon from "@mui/icons-material/Today";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -11,9 +11,43 @@ import { useEffect, useState } from "react";
 
 const ManageRequests = () => {
     const navigate = useNavigate();
-    const location = useLocation();
 
-    const assignment = location.state?.assignment;
+    const { assignmentId } = useParams();
+    const [assignment, setAssignment] = useState<any>(null);
+    useEffect(() => {
+        const fetchAssignment = async () => {
+            if (!assignmentId) return;
+
+            const { data, error } = await supabase
+                .from("chair_manager_assignment")
+                .select(`
+                *,
+                section:section_id (
+                    section_name,
+                    room:room_id (
+                        room_name
+                    )
+                )
+            `)
+                .eq("assignment_id", assignmentId)
+                .single();
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            const formatted = {
+                ...data,
+                room: data.section?.room?.room_name,
+                section: data.section?.section_name
+            };
+
+            setAssignment(formatted);
+        };
+
+        fetchAssignment();
+    }, [assignmentId]);
 
     // Fetch the Max Capacity (Total Seats)
     const [totalSeats, setTotalSeats] = useState(0);

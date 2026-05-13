@@ -32,7 +32,7 @@ function App() {
 
                 <Route element={<ChairManagerLayout />}>
                     <Route path="/chair-manager-home" element={<Dashboard />} />
-                    <Route path="/chair-manager/manage-requests" element={<ManageRequests />}/>
+                    <Route path="/chair-manager/manage-requests/:assignmentId" element={<ManageRequests />}/>
                     <Route path="/chair-manager/history" element={<RequestHistory />}/>
                 </Route>
 

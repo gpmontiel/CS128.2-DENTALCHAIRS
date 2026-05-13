@@ -445,9 +445,7 @@ const Dashboard : React.FC = () => {
                         disableElevation
                         sx={{ backgroundColor: '#493979', fontFamily: 'Inter', textTransform: 'none' }}
                         startIcon={<GroupsIcon/>}
-                        onClick={() => navigate("/chair-manager/manage-requests", {
-                            state: { assignment: assignmentData[0] }
-                        })}
+                        onClick={() => navigate(`/chair-manager/manage-requests/${assignmentData[0].assignment_id}`)}
                     >
                         View Requests
                     </Button>
