@@ -18,8 +18,8 @@ interface Page {
 }
 
 const pages: Page[] = [
-    { name: 'Manage Requests', path: '/clinician', icon: <ChairIcon fontSize="small" /> },
-    { name: 'View History', path: '/clinicianRequest', icon: <HistoryIcon fontSize="small" /> },
+    { name: 'Manage Requests', path: '/chair-manager/manage-requests', icon: <ChairIcon fontSize="small" /> },
+    { name: 'View History', path: '/chair-manager/history', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 const ResponsiveAppBar: React.FC = () => {
@@ -106,6 +106,11 @@ const ResponsiveAppBar: React.FC = () => {
         }
 
         navigate("/");
+    };
+
+    const handleMobileNavigate = (path: string) => {
+        navigate(path);
+        setOpenDrawer(false); // This closes the drawer
     };
 
     return (
@@ -198,23 +203,16 @@ const ResponsiveAppBar: React.FC = () => {
                                 </Box>
 
                                 <List sx={{ flexGrow: 1, pl: 1.5 }}>
-                                    <ListItem disablePadding>
-                                        <ListItemButton onClick={() => navigate("/clinician")}>
-                                            <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
-                                                <ChairIcon />
-                                            </ListItemIcon>
-                                            <ListItemText primary="Manage Requests" />
-                                        </ListItemButton>
-                                    </ListItem>
-
-                                    <ListItem disablePadding>
-                                        <ListItemButton onClick={() => navigate("/clinicianRequest")}>
-                                            <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
-                                                <HistoryIcon />
-                                            </ListItemIcon>
-                                            <ListItemText primary="View History" />
-                                        </ListItemButton>
-                                    </ListItem>
+                                    {pages.map((page) => (
+                                        <ListItem key={page.name} disablePadding>
+                                            <ListItemButton onClick={() => handleMobileNavigate(page.path)}>
+                                                <ListItemIcon sx={{ color: "white", minWidth: 40 }}>
+                                                    {page.icon}
+                                                </ListItemIcon>
+                                                <ListItemText primary={page.name} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ))}
                                 </List>
 
                                 <Box sx={{ p: 2, pb: 3 }}>

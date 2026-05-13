@@ -8,7 +8,10 @@ import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx"
 import ClinicianNotification from "./pages/ClinicianPage/Notification/Notification.tsx";
 import ClinicianProfile from "./pages/ClinicianPage/Profile/Profile.tsx";
 import RequestForm from './pages/ClinicianPage/Request/RequestForm.tsx';
-import Dashboard from "./pages/ChairManagerPage/Dashboard.tsx";
+import Dashboard from "./pages/ChairManagerPage/pages/Dashboard.tsx";
+import ChairManagerLayout from "./pages/ChairManagerPage/layouts/ChairManagerLayout.tsx"
+import ManageRequests from "./pages/ChairManagerPage/pages/ManageRequests.tsx";
+import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -27,7 +30,11 @@ function App() {
                 <Route path="/clinicianProfile" element={<ClinicianProfile />} />
                 <Route path="/requestForm" element={<RequestForm />} />
 
-                <Route path="/chair-manager-home" element={<Dashboard />} />
+                <Route element={<ChairManagerLayout />}>
+                    <Route path="/chair-manager-home" element={<Dashboard />} />
+                    <Route path="/chair-manager/manage-requests" element={<ManageRequests />}/>
+                    <Route path="/chair-manager/history" element={<RequestHistory />}/>
+                </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>

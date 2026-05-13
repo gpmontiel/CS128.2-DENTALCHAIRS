@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, Card, Button, Grid, Chip, Dialog, DialogTitle, DialogContent,
     DialogActions, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert} from "@mui/material";
 
@@ -16,8 +17,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 
-import ChairManagerNavbar from "./components/ChairManagerNavbar.tsx";
-import { supabase } from "../../utils/supabase.ts";
+import { supabase } from "../../../utils/supabase.ts";
 import dayjs from "dayjs";
 
 interface Room {
@@ -34,6 +34,7 @@ interface Section {
 
 const Dashboard : React.FC = () => {
     const [isChairManager, setIsChairManager] = useState(false);
+    const navigate = useNavigate();
 
     // for dialog
     const [open, setOpen] = useState(false);
@@ -74,7 +75,7 @@ const Dashboard : React.FC = () => {
         };
 
         fetchRooms();
-    })
+    }, []);
 
     const fetchSections = async (room_id: number) => {
         try {
@@ -327,9 +328,7 @@ const Dashboard : React.FC = () => {
 
     return (
         <Box fontFamily="Inter">
-            <ChairManagerNavbar/>
-
-            <Typography variant="h5" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2, mx: 3 }}>
+            <Typography variant="h4" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2, mx: 3 }}>
                 Dashboard
             </Typography>
 
@@ -446,6 +445,9 @@ const Dashboard : React.FC = () => {
                         disableElevation
                         sx={{ backgroundColor: '#493979', fontFamily: 'Inter', textTransform: 'none' }}
                         startIcon={<GroupsIcon/>}
+                        onClick={() => navigate("/chair-manager/manage-requests", {
+                            state: { assignment: assignmentData[0] }
+                        })}
                     >
                         View Requests
                     </Button>
