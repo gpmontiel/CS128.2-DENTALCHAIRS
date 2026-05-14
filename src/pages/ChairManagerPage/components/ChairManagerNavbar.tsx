@@ -8,7 +8,8 @@ import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HistoryIcon from '@mui/icons-material/History';
-import ChairIcon from '@mui/icons-material/Chair';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PersonIcon from '@mui/icons-material/Person';
 import { supabase } from "../../../utils/supabase.ts";
 
 interface Page {
@@ -18,7 +19,7 @@ interface Page {
 }
 
 const pages: Page[] = [
-    { name: 'Manage Requests', path: '/chair-manager/manage-requests', icon: <ChairIcon fontSize="small" /> },
+    { name: 'Dashboard', path: '/chair-manager-home', icon: <DashboardIcon fontSize="small" /> },
     { name: 'View History', path: '/chair-manager/history', icon: <HistoryIcon fontSize="small" /> },
 ];
 
@@ -42,6 +43,7 @@ const ResponsiveAppBar: React.FC = () => {
     const [lastName, setLastName] = React.useState<string>("User");
     const [userInitial, setUserInitial] = React.useState<string>("U");
     const [userRole, setUserRole] = React.useState<string>("");
+    const [pfpUrl, setPfpUrl] = React.useState<string>("");
 
     React.useEffect(() => {
         const fetchUserProfile = async () => {
@@ -53,7 +55,7 @@ const ResponsiveAppBar: React.FC = () => {
                 if (user) {
                     const { data: profile, error: profileError } = await supabase
                         .from('profiles')
-                        .select('first_name, last_name, role_id')
+                        .select('first_name, last_name, role_id, pfp')
                         .eq('profile_id', user.id)
                         .single();
 
@@ -67,6 +69,7 @@ const ResponsiveAppBar: React.FC = () => {
                         const lastName = profile.last_name || "";
                         setFirstName(firstName);
                         setLastName(lastName);
+                        setPfpUrl(profile.pfp || "");
 
                         setUserInitial(firstName.charAt(0).toUpperCase());
 
@@ -96,6 +99,15 @@ const ResponsiveAppBar: React.FC = () => {
         fetchUserProfile();
     }, []);
 
+    const handleProfile = async () => {
+        navigate("/profile", { 
+            state: { 
+                fromChairManager: true,
+                navbarType: "chair"
+            } 
+        });
+        handleClose();
+    }
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -157,8 +169,9 @@ const ResponsiveAppBar: React.FC = () => {
                                             backgroundColor: "#6b4e9e",
                                             fontSize: "2rem"
                                         }}
+                                        src={pfpUrl || undefined}
                                     >
-                                        {userInitial}
+                                        {!pfpUrl && userInitial}
                                     </Avatar>
 
                                     <Typography sx={{ fontWeight: 600, mb: 2, textAlign: "center" }}>
@@ -170,7 +183,7 @@ const ResponsiveAppBar: React.FC = () => {
                                             variant="outlined"
                                             size="small"
                                             disableElevation
-                                            onClick={() => {/* handle edit profile */}}
+                                            onClick={handleProfile}
                                             sx={{
                                                 color: "white",
                                                 borderColor: "rgba(255, 255, 255, 0.8)",
@@ -178,9 +191,9 @@ const ResponsiveAppBar: React.FC = () => {
                                                 textTransform: "none",
                                                 py: 1
                                             }}
-                                            startIcon={<EditIcon fontSize="small" />}
+                                            startIcon={<PersonIcon fontSize="small" />}
                                         >
-                                            Edit Profile
+                                            Profile
                                         </Button>
                                         <Button
                                             variant="contained"
@@ -313,8 +326,8 @@ const ResponsiveAppBar: React.FC = () => {
                             onClick={handleAvatarClick}
                             sx={{ p: 0, display: { xs: 'none', md: 'inline-flex' } }}
                         >
-                            <Avatar sx={{ width: 32, height: 32 }}>
-                                K
+                            <Avatar sx={{ width: 32, height: 32 }} src={pfpUrl || undefined}>
+                               {!pfpUrl && userInitial}
                             </Avatar>
                         </IconButton>
 
@@ -382,7 +395,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                             <Divider />
 
-                            <MenuItem onClick={() => navigate("/chair-manager-home")}>
+                            <MenuItem onClick={() => navigate("/clinician")}>
                                 <ListItemIcon>
                                     <SwitchAccountIcon fontSize="small" sx={{ color: '#4c438e' }} />
                                 </ListItemIcon>
@@ -391,12 +404,12 @@ const ResponsiveAppBar: React.FC = () => {
                                 </Typography>
                             </MenuItem>
 
-                            <MenuItem onClick={handleClose}>
+                            <MenuItem onClick={handleProfile}>
                                 <ListItemIcon>
-                                    <EditIcon fontSize="small" sx={{ color: '#4c438e' }} />
+                                    <PersonIcon fontSize="small" sx={{ color: '#4c438e' }} />
                                 </ListItemIcon>
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                    Edit Profile
+                                    Profile
                                 </Typography>
                             </MenuItem>
 

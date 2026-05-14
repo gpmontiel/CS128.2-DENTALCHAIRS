@@ -7,6 +7,7 @@ import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
 import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
 import ClinicianNotification from "./pages/ClinicianPage/Notification/Notification.tsx";
 import ClinicianProfile from "./pages/ClinicianPage/Profile/Profile.tsx";
+import ClinicianEditProfile from "./pages/ClinicianPage/Profile/EditProfile.tsx";
 import RequestForm from './pages/ClinicianPage/Request/RequestForm.tsx';
 import Dashboard from "./pages/ChairManagerPage/pages/Dashboard.tsx";
 import ChairManagerLayout from "./pages/ChairManagerPage/layouts/ChairManagerLayout.tsx"
@@ -27,7 +28,8 @@ function App() {
 
                 <Route path="/clinicianRequest" element={<ClinicianRequest />} />
                 <Route path="/clinicianNotification" element={<ClinicianNotification />} />
-                <Route path="/clinicianProfile" element={<ClinicianProfile />} />
+                <Route path="/profile" element={<ClinicianProfile />} />
+                <Route path="/edit-profile" element={<ClinicianEditProfile />} />
                 <Route path="/requestForm" element={<RequestForm />} />
 
                 <Route element={<ChairManagerLayout />}>
