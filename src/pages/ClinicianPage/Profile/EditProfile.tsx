@@ -243,7 +243,7 @@ const EditProfile = () => {
             setSnackbarOpen(true);
             
             setTimeout(() => {
-                navigate("/profile");
+                navigate("/profile", { state: { fromChairManager } });
             }, 1500);
             
         } catch (error: any) {

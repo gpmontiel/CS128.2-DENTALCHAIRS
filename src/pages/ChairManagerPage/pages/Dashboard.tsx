@@ -13,6 +13,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import PanoramaFishEyeIcon from '@mui/icons-material/PanoramaFishEye';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
@@ -171,6 +172,23 @@ const Dashboard : React.FC = () => {
                 throw new Error('Selected section not found');
             }
 
+            const { data: existing, error: checkError } = await supabase
+                .from('chair_manager_assignment')
+                .select('assignment_id')
+                .eq('section_id', selectedSection.section_id)
+                .eq('date', formattedDate)
+                .eq('shift', formData.shift)
+                .in('status', ['Accepted', 'Confirmed']);
+
+            if (checkError) throw checkError;
+
+            if (existing && existing.length > 0) {
+                setSnackbarMessage('A chair manager is already assigned for this section, date, and shift.');
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
+                return;
+            }
+
             const assignmentData = {
                 student_id: user.id,
                 section_id: selectedSection.section_id,
@@ -326,6 +344,90 @@ const Dashboard : React.FC = () => {
         setSelectedAssignmentId(null);
     };
 
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) return;
+
+                const { data, error } = await supabase
+                    .from('chair_manager_assignment')
+                    .select(`
+                    assignment_id,
+                    date,
+                    shift,
+                    status,
+                    section:section_id (
+                        section_name,
+                        room:room_id (
+                            room_name
+                        )
+                    )
+                `)
+                    .eq('student_id', user.id)
+                    .order('date', { ascending: false }) // newest first
+                    .limit(3);
+
+                if (error) throw error;
+
+                const formatted = data?.map(item => ({
+                    assignment_id: item.assignment_id,
+                    date: item.date,
+                    shift: item.shift,
+                    status: item.status,
+                    room: item.section?.room?.room_name || 'N/A',
+                    section: item.section?.section_name || 'N/A',
+                })) || [];
+
+                setHistoryData(formatted);
+            } catch (err) {
+                console.error('Error fetching history:', err);
+            }
+        };
+
+        fetchHistory();
+    }, []);
+
+    const getHistoryStatus = (item: any) => {
+        const today = dayjs().startOf('day');
+        const itemDate = dayjs(item.date).startOf('day');
+
+        if (item.status === 'Pending') return 'Pending';
+        if (item.status === 'Cancelled') return 'Cancelled';
+        if (item.status === 'Rejected') return 'Rejected';
+
+        if (item.status === 'Confirmed') {
+            if (itemDate.isBefore(today)) return 'Completed';
+            return 'Ongoing';
+        }
+
+        return 'Unknown';
+    };
+
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'Pending':
+                return { bg: '#E8F0FE', color: '#1A73E8' };
+
+            case 'Ongoing':
+                return { bg: '#FFF4CC', color: '#B26A00' };
+
+            case 'Completed':
+                return { bg: '#E6F4EA', color: '#1E7E34' };
+
+            case 'Cancelled':
+                return { bg: '#F1F3F4', color: '#5F6368' };
+
+            case 'Rejected':
+                return { bg: '#FDECEA', color: '#B3261E' };
+
+            default:
+                return { bg: '#F1F3F4', color: '#5F6368' };
+        }
+    };
+
     return (
         <Box fontFamily="Inter">
             <Typography variant="h4" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2, mx: 3 }}>
@@ -355,11 +457,11 @@ const Dashboard : React.FC = () => {
                                 fontSize: 10,
                                 px: 0.5,
                                 height: 18,
-                                color: "#1E7E34",
-                                backgroundColor: "#E6F4EA",
+                                color: "#B26A00",
+                                backgroundColor: "#FFF4CC",
                                 "& .MuiChip-icon": {
                                     fontSize: 10,
-                                    color: "#1E7E34"
+                                    color: "#B26A00"
                                 }
                             }}
                         />
@@ -791,6 +893,105 @@ const Dashboard : React.FC = () => {
             )}
 
             {/* History Section */}
+            <Box sx={{ mx: 3, mb: 3 }}>
+                <Typography variant="h6" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ mb: 2 }}>
+                    History
+                </Typography>
+
+                {/* Recent History Items */}
+                <Box>
+                    {historyData.length === 0 ? (
+                        <Typography color="text.secondary" fontFamily="Inter" sx={{ mb: 2, textAlign: 'center', width: '100%' }}>
+                            No history yet
+                        </Typography>
+                    ) : (
+                        <>
+                            {historyData.map((item) => {
+                                const statusLabel = getHistoryStatus(item);
+                                const style = getStatusStyle(statusLabel);
+
+                                return (
+                                    <Card
+                                        key={item.assignment_id}
+                                        variant="outlined"
+                                        sx={{ mb: 1.5, p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                                    >
+                                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                            {/* Date Badge */}
+                                            <Box sx={{ textAlign: 'center', backgroundColor: '#F3F0FA', p: 1, borderRadius: 1.5, minWidth: 50, border: '1px solid #E0D7F7' }}>
+                                                <Typography variant="caption" fontWeight="700" color="#493979" sx={{ display: 'block', lineHeight: 1 }}>
+                                                    {dayjs(item.date).format('D')}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ fontSize: 9, textTransform: 'uppercase' }}>
+                                                    {dayjs(item.date).format('MMM')}
+                                                </Typography>
+                                            </Box>
+
+                                            {/* Details */}
+                                            <Box>
+                                                <Typography variant="body2" fontWeight="600" sx={{ color: '#493979', lineHeight: 1.2, fontSize: 18 }}>
+                                                    {item.section}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ lineHeight: 1.2, display: 'block', mt: 0 }}>
+                                                    {item.room}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                    <AccessTimeIcon sx={{ fontSize: 12 }} /> {item.shift} Shift
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+
+                                        {/* Status and Action Container */}
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                                            <Chip
+                                                label={statusLabel}
+                                                size="small"
+                                                sx={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 'bold',
+                                                    height: '20px',
+                                                    backgroundColor: style.bg,
+                                                    color: style.color,
+                                                    borderRadius: '4px'
+                                                }}
+                                            />
+                                            <Button
+                                                size="small"
+                                                variant="text"
+                                                sx={{
+                                                    textTransform: 'none',
+                                                    color: '#493979',
+                                                    fontWeight: 600,
+                                                    fontSize: 12,
+                                                    p: 0,
+                                                    minWidth: 0
+                                                }}
+                                                onClick={() => {
+                                                    const status = getHistoryStatus(item);
+
+                                                    if (status === "Ongoing") {
+                                                        navigate(`/chair-manager/manage-requests/${item.assignment_id}`);
+                                                    } else {
+                                                        navigate(`/chair-manager/history/${item.assignment_id}`);
+                                                    }
+                                                }}
+                                            >
+                                                View Details
+                                            </Button>
+                                        </Box>
+                                    </Card>
+                                );
+                            })}
+
+                            {/* View More Button */}
+                            <Button fullWidth sx={{ mt: 1, mb: 4, color: 'text.secondary', textTransform: 'none', fontSize: 13, textDecoration: 'underline' }}
+                                onClick={() => navigate('/chair-manager/history')}>
+                                View more on history page
+                            </Button>
+                        </>
+                    )}
+                </Box>
+            </Box>
         </Box>
     )
 }
