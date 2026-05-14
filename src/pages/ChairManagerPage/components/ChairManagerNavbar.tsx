@@ -8,7 +8,7 @@ import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HistoryIcon from '@mui/icons-material/History';
-import ChairIcon from '@mui/icons-material/Chair';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import { supabase } from "../../../utils/supabase.ts";
 
 interface Page {
@@ -18,7 +18,7 @@ interface Page {
 }
 
 const pages: Page[] = [
-    { name: 'Manage Requests', path: '/chair-manager/manage-requests', icon: <ChairIcon fontSize="small" /> },
+    { name: 'Dashboard', path: '/chair-manager-home', icon: <DashboardIcon fontSize="small" /> },
     { name: 'View History', path: '/chair-manager/history', icon: <HistoryIcon fontSize="small" /> },
 ];
 

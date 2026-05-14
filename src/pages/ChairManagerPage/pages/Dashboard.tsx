@@ -171,6 +171,23 @@ const Dashboard : React.FC = () => {
                 throw new Error('Selected section not found');
             }
 
+            const { data: existing, error: checkError } = await supabase
+                .from('chair_manager_assignment')
+                .select('assignment_id')
+                .eq('section_id', selectedSection.section_id)
+                .eq('date', formattedDate)
+                .eq('shift', formData.shift)
+                .in('status', ['Accepted', 'Confirmed']);
+
+            if (checkError) throw checkError;
+
+            if (existing && existing.length > 0) {
+                setSnackbarMessage('A chair manager is already assigned for this section, date, and shift.');
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
+                return;
+            }
+
             const assignmentData = {
                 student_id: user.id,
                 section_id: selectedSection.section_id,
