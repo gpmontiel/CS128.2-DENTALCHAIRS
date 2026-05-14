@@ -1,18 +1,16 @@
-import {Box, Typography, Button, Card, LinearProgress, Divider, Avatar,
-    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
-import {useNavigate, useParams} from "react-router-dom";
+import { Box, Typography, Button, Card, Divider, LinearProgress, Avatar } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TodayIcon from "@mui/icons-material/Today";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import CancelIcon from "@mui/icons-material/Cancel";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { supabase } from "../../../utils/supabase.ts";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import localeData from "dayjs/plugin/localeData";
+import TodayIcon from "@mui/icons-material/Today";
+dayjs.extend(localeData);
 
-const ManageRequests = () => {
+const RequestHistoryDetails = () => {
     const navigate = useNavigate();
-
     const { assignmentId } = useParams();
     const [assignment, setAssignment] = useState<any>(null);
     useEffect(() => {
@@ -231,11 +229,11 @@ const ManageRequests = () => {
                         </Typography>
 
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                            Student Group: {student.student_group}
+                            <b> Student Group: </b> {student.student_group}
                         </Typography>
 
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                            Assistant: {student.assistant_first_name
+                            <b> Assistant: </b>  {student.assistant_first_name
                             ? `${student.assistant_last_name}, ${student.assistant_first_name}`
                             : "None"}
                         </Typography>
@@ -267,117 +265,44 @@ const ManageRequests = () => {
 
                     {/* STATUS / BUTTONS SECTION */}
                     <Box>
-                        {student.status === "Pending" ? (
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                                <Button
-                                    fullWidth
-                                    variant="outlined"
-                                    color="error"
-                                    startIcon={<CancelIcon />}
-                                    sx={{
-                                        textTransform: "none",
-                                        backgroundColor: "#EF4444",
-                                        color: "#fff"
-                                    }}
-                                    onClick={() => handleOpenDialog("reject", student)}
-                                >
-                                    Reject
-                                </Button>
-
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    color="success"
-                                    startIcon={<CheckCircleIcon />}
-                                    sx={{
-                                        textTransform: "none",
-                                        backgroundColor: "#7C3AED"
-                                    }}
-                                    onClick={() => handleOpenDialog("accept", student)}
-                                >
-                                    Accept
-                                </Button>
-                            </Box>
-                        ) : (
-                            <Box
-                                sx={{
-                                    px: 2,
-                                    py: 1,
-                                    borderRadius: 2,
-                                    width: "100%",
-                                    textAlign: "center",
-                                    backgroundColor:
-                                        student.status === "Accepted"
-                                            ? "#E8F5E9"
-                                            : student.status === "Rejected"
-                                                ? "#FFEBEE"
+                        <Box
+                            sx={{
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                width: "100%",
+                                textAlign: "center",
+                                backgroundColor:
+                                    student.status === "Accepted"
+                                        ? "#E8F5E9"
+                                        : student.status === "Rejected"
+                                            ? "#FFEBEE"
+                                            : student.status === "Cancelled"
+                                                ? "#F1F3F4"
                                                 : "#EEEEEE",
+                            }}
+                        >
+                            <Typography
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: 14,
+                                    color:
+                                        student.status === "Accepted"
+                                            ? "#2E7D32"
+                                            : student.status === "Rejected"
+                                                ? "#D32F2F"
+                                                : student.status === "Cancelled"
+                                                    ? "#616161"
+                                                    : "#616161",
                                 }}
                             >
-                                <Typography
-                                    sx={{
-                                        fontWeight: 700,
-                                        fontSize: 14,
-                                        color:
-                                            student.status === "Accepted"
-                                                ? "#2E7D32"
-                                                : student.status === "Rejected"
-                                                    ? "#D32F2F"
-                                                    : "#616161",
-                                    }}
-                                >
-                                    {student.status}
-                                </Typography>
-                            </Box>
-                        )}
+                                {student.status}
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
             </Card>
         );
-    };
-
-    const [openDialog, setOpenDialog] = useState(false);
-    const [actionType, setActionType] = useState<"accept" | "reject" | null>(null);
-    const [selectedStudent, setSelectedStudent] = useState<any>(null);
-
-    const handleOpenDialog = (type: "accept" | "reject", student: any) => {
-        setActionType(type);
-        setSelectedStudent(student);
-        setOpenDialog(true);
-    };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setActionType(null);
-        setSelectedStudent(null);
-    };
-
-    const handleConfirmAction = async () => {
-        if (!selectedStudent || !actionType) return;
-
-        const newStatus = actionType === "accept" ? "Accepted" : "Rejected";
-
-        console.log("Updating ID:", selectedStudent.id, "to status:", newStatus);
-
-        const { error } = await supabase
-            .from("dental_chairs_request_assignment")
-            .update({ status: newStatus })
-            .eq("request_id", selectedStudent.id);
-
-        if (error) {
-            console.error("Error updating request:", error);
-            return;
-        }
-
-        setRequestList((prev) =>
-            prev.map((student) =>
-                student.id === selectedStudent.id
-                    ? { ...student, status: newStatus }
-                    : student
-            )
-        );
-
-        handleCloseDialog();
     };
 
     return (
@@ -385,7 +310,7 @@ const ManageRequests = () => {
             <Box sx={{display: 'flex', alignItems: 'center', gap: 1,}}>
                 <Button
                     startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate("/chair-manager-home")}
+                    onClick={() => navigate("/chair-manager/history")}
                     sx={{
                         textTransform: 'none',
                         color: '#493979',
@@ -394,12 +319,12 @@ const ManageRequests = () => {
                         mr: 1
                     }}
                 >
-                    Back to Dashboard
+                    Back to History Page
                 </Button>
             </Box>
 
             <Typography variant="h4" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2 }}>
-                Requests
+                Request Details
             </Typography>
 
             <Card
@@ -482,38 +407,8 @@ const ManageRequests = () => {
                     <StudentCard key={student.id} student={student} />
                 ))}
             </Box>
-
-            <Dialog open={openDialog} onClose={handleCloseDialog}>
-                <DialogTitle>
-                    Confirm {actionType === "accept" ? "Acceptance" : "Rejection"}
-                </DialogTitle>
-
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to{" "}
-                        <strong>
-                            {actionType === "accept" ? "accept" : "reject"}
-                        </strong>{" "}
-                        this request? This action cannot be undone.
-                    </DialogContentText>
-                </DialogContent>
-
-                <DialogActions>
-                    <Button onClick={handleCloseDialog} color="inherit">
-                        Cancel
-                    </Button>
-
-                    <Button
-                        onClick={handleConfirmAction}
-                        color={actionType === "accept" ? "success" : "error"}
-                        variant="contained"
-                    >
-                        Confirm
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 };
 
-export default ManageRequests;
+export default RequestHistoryDetails;

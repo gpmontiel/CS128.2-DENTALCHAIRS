@@ -12,6 +12,7 @@ import Dashboard from "./pages/ChairManagerPage/pages/Dashboard.tsx";
 import ChairManagerLayout from "./pages/ChairManagerPage/layouts/ChairManagerLayout.tsx"
 import ManageRequests from "./pages/ChairManagerPage/pages/ManageRequests.tsx";
 import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
+import RequestHistoryDetails from "./pages/ChairManagerPage/pages/RequestHistoryDetails.tsx";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -35,6 +36,7 @@ function App() {
                     <Route path="/chair-manager/manage-requests" element={<ManageRequests />} />
                     <Route path="/chair-manager/manage-requests/:assignmentId" element={<ManageRequests />}/>
                     <Route path="/chair-manager/history" element={<RequestHistory />}/>
+                    <Route path="/chair-manager/history/:assignmentId" element={<RequestHistoryDetails />}/>
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />
