@@ -929,7 +929,7 @@ const Dashboard : React.FC = () => {
 
                                             {/* Details */}
                                             <Box>
-                                                <Typography variant="body2" fontWeight="600" sx={{ color: '#493979', lineHeight: 1.2 }}>
+                                                <Typography variant="body2" fontWeight="600" sx={{ color: '#493979', lineHeight: 1.2, fontSize: 18 }}>
                                                     {item.section}
                                                 </Typography>
                                                 <Typography variant="caption" sx={{ lineHeight: 1.2, display: 'block', mt: 0 }}>

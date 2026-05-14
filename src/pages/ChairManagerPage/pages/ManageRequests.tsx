@@ -173,6 +173,7 @@ const ManageRequests = () => {
 
             const formatted = (data || []).map((item: any) => ({
                 id: item.request_id,
+                student_id: item.student?.profile_id,
 
                 first_name: item.student?.first_name,
                 last_name: item.student?.last_name,
@@ -376,6 +377,19 @@ const ManageRequests = () => {
                     : student
             )
         );
+
+        if (selectedStudent?.student_id) {
+            await supabase.from("notifications").insert({
+                user_id: selectedStudent.student_id,
+                type: newStatus.toLowerCase(),
+                title: `Chair Request ${newStatus}`,
+                message:
+                    newStatus === "Accepted"
+                        ? `Your chair request for ${assignment?.section} - ${assignment?.shift} on ${dayjs(assignment?.date).format("MMMM D, YYYY")} has been approved.`
+                        : `Your chair request for ${assignment?.section} - ${assignment?.shift} on ${dayjs(assignment?.date).format("MMMM D, YYYY")} has been rejected.`,
+                is_read: false,
+            });
+        }
 
         handleCloseDialog();
     };
