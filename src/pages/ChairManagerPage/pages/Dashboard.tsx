@@ -270,6 +270,9 @@ const Dashboard : React.FC = () => {
             try {
                 const today = new Date().toISOString().split('T')[0];
 
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
                 const { data, error } = await supabase
                     .from('chair_manager_assignment')
                     .select(`
@@ -282,7 +285,10 @@ const Dashboard : React.FC = () => {
                     )
                 `)
                     .eq('status', 'Confirmed')
-                    .gte('date', today);
+                    .eq('student_id', user.id)
+                    .gte('date', today)
+                    .order('date', { ascending: true })
+                    .limit(1);
 
                 if (error) throw error;
 
