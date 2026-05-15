@@ -1,0 +1,78 @@
+.tab-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+/* MAIN PILL CONTAINER */
+.tab-pill-wrapper {
+  display: flex;
+  gap: 6px;
+  background-color: #ffffff;
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+
+  padding: 6px;
+  margin: 10px;
+  width: 92%;
+  max-width: 360px;
+  height: 48px;
+  border-radius: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* desktop / large screens */
+@media (min-width: 1024px) {
+  .tab-pill-wrapper {
+    width: 500px;
+    max-width: none;
+  }
+}
+
+/* TABLET / SMALL MOBILE OPTIMIZATION */
+@media (max-width: 480px) {
+  .tab-pill-wrapper {
+    width: 95%;
+    height: 50px;
+  }
+
+  .tab-button {
+    font-size: 13px;
+    padding: 0 10px;
+  }
+}
+
+/* TAB BUTTON */
+.tab-button {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #493979;
+  cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.15s ease;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+/* hover state */
+.tab-button:hover {
+  background-color: rgba(73, 57, 121, 0.08);
+}
+
+/* active state */
+.tab-button.active {
+  background-color: #493979;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}

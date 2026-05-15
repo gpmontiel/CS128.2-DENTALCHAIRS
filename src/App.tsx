@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
 import AdminHome from "./pages/ClinicalAdminPage/AdminHome.tsx";
-import ManagerHome from "./pages/ProgramManagerPage/ManagerHome.tsx";
+import ManagerHome from "./pages/ProgramManagerPage/pages/ManagerHome.tsx";
 import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
 import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
 import ClinicianNotification from "./pages/ClinicianPage/Notification/Notification.tsx";
