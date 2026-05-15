@@ -217,7 +217,11 @@ const Profile = () => {
                                     margin: 0
                                 }}
                             >
-                                Edit Profile
+                                <div style={{ display: "flex", justifyContent: "center", gap: 7}}>
+                                    <EditIcon fontSize="small"/>
+                                    Edit Profile
+                                </div>
+                                
                             </button>
                         </div>
                     )}

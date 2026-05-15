@@ -30,6 +30,7 @@ const RequestSchedule = () => {
 
             if (userError || !userData.user) {
                 console.error("User not found");
+                setLoading(false);
                 return;
             }
 
@@ -49,7 +50,9 @@ const RequestSchedule = () => {
                         )
                     )
                 `)
-            .eq("student_id", userId);
+            .eq("student_id", userId)
+            .order("date", { ascending: false })
+            .order("shift", { ascending: true });
 
             console.log("Fetched Data:", data);
             console.log("Error:", error);
@@ -67,9 +70,15 @@ const RequestSchedule = () => {
         fetchSchedules();
     }, []);
 
-    const filteredSchedules = schedules.filter(
-        (item) => item.status === schedFilter
-    );
+    const filteredSchedules = schedules
+        .filter((item) => item.status === schedFilter)
+        .sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+
+            if (dateA !== dateB) return dateB - dateA;
+            return a.shift.localeCompare(b.shift);
+        });
 
     if (loading) {
         return (
@@ -106,63 +115,47 @@ const RequestSchedule = () => {
             </div> 
 
             {/* DISPLAY SCHEDULES */}
-            {schedFilter === "Pending" && filteredSchedules.map((item) => {
-                const dateObj = new Date(item.date);
+            <div className="schedules-list-container">
+                {filteredSchedules.length > 0 ? (
+                    filteredSchedules.map((item) => {
+                        const dateObj = new Date(item.date);
 
-                return (
-                    <div key={item.assignment_id} className="sched-display-container">
-                        <div className="date-container">
-                            <p style={{ fontSize: "38px", fontWeight: 600, fontFamily: "Poppins, sans-serif" }}>
-                                {dateObj.getDate()}
-                            </p>
-                            <p style={{ fontSize: "20px", fontFamily: "Poppins, sans-serif" }}>
-                                {dateObj.toLocaleString("default", { month: "short" })}
-                            </p>
-                            <p className="shift-display" style={{ fontFamily: "Poppins, sans-serif" }}>
-                                {item.shift}
-                            </p>
-                        </div>
-                        
-                        <div className="room-section-display-container">
-                            <p style={{ fontSize: "25px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
-                                {item.sections?.rooms?.room_name || "No Room"}
-                            </p>
-                            <p style={{ fontSize: "18px", fontFamily: "Poppins, sans-serif" }}>
-                                Section: {item.sections?.section_name || "No Section"}
-                            </p>
-                        </div>
+                        return (
+                            <div key={item.assignment_id} className="sched-display-container">
+                                <div className="date-container">
+                                    <p style={{ fontSize: "38px", fontWeight: 600, fontFamily: "Poppins, sans-serif" }}>
+                                        {dateObj.getDate()}
+                                    </p>
+                                    <p style={{ fontSize: "20px", fontFamily: "Poppins, sans-serif" }}>
+                                        {dateObj.toLocaleString("default", { month: "short" })}
+                                    </p>
+                                    <p className="shift-display" style={{ fontFamily: "Poppins, sans-serif" }}>
+                                        {item.shift}
+                                    </p>
+                                </div>
+                                
+                                <div className="room-section-display-container">
+                                    <p style={{ fontSize: "25px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
+                                        {item.sections?.rooms?.room_name || "No Room"}
+                                    </p>
+                                    <p style={{ fontSize: "18px", fontFamily: "Poppins, sans-serif" }}>
+                                        Section: {item.sections?.section_name || "No Section"}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div style={{ 
+                        textAlign: "center", 
+                        marginTop: "50px", 
+                        color: "#888", 
+                        fontFamily: "Poppins, sans-serif" 
+                    }}>
+                        <p>No {schedFilter.toLowerCase()} requests found.</p>
                     </div>
-                );
-            })}
-
-            {schedFilter === "Rejected" && filteredSchedules.map((item) => {
-                const dateObj = new Date(item.date);
-
-                return (
-                    <div key={item.assignment_id} className="sched-display-container">
-                        <div className="date-container">
-                            <p style={{ fontSize: "38px", fontWeight: 600, fontFamily: "Poppins, sans-serif" }}>
-                                {dateObj.getDate()}
-                            </p>
-                            <p style={{ fontSize: "20px", fontFamily: "Poppins, sans-serif" }}>
-                                {dateObj.toLocaleString("default", { month: "short" })}
-                            </p>
-                            <p className="shift-display" style={{ fontFamily: "Poppins, sans-serif" }}>
-                                {item.shift}
-                            </p>
-                        </div>
-                        
-                        <div className="room-section-display-container">
-                            <p style={{ fontSize: "25px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
-                                {item.sections?.rooms?.room_name || "No Room"}
-                            </p>
-                            <p style={{ fontSize: "18px", fontFamily: "Poppins, sans-serif" }}>
-                                Section: {item.sections?.section_name || "No Section"}
-                            </p>
-                        </div>
-                    </div>
-                );
-            })}
+                )}
+            </div>
 
             <div>
                 <button className="add-btn" onClick={() => navigate("/requestForm")}>
