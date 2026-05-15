@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
-import AdminHome from "./pages/ClinicalAdminPage/AdminHome.tsx";
 import ManagerHome from "./pages/ProgramManagerPage/ManagerHome.tsx";
 import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
 import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
@@ -12,6 +11,10 @@ import Dashboard from "./pages/ChairManagerPage/pages/Dashboard.tsx";
 import ChairManagerLayout from "./pages/ChairManagerPage/layouts/ChairManagerLayout.tsx"
 import ManageRequests from "./pages/ChairManagerPage/pages/ManageRequests.tsx";
 import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
+import ClinicalAdminLayout from "./pages/ClinicalAdminPage/layouts/ClinicalAdminLayout.tsx";
+import ClinicalAdminStudents from "./pages/ClinicalAdminPage/Students/Students.tsx";
+import ClinicalAdminRequests from "./pages/ClinicalAdminPage/Requests/Requests.tsx";
+import ClinicalAdminAttendance from "./pages/ClinicalAdminPage/Attendance/Attendance.tsx";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -20,7 +23,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage onLoginSuccess={(userData) => setUser(userData)} />} />
-                <Route path="/admin" element={user?.role_id === 1 ? <AdminHome /> : <Navigate to="/" />} />
+                {/*<Route path="/admin" element={user?.role_id === 1 ? <ClinicalAdminHome /> : <Navigate to="/" />} />*/}
                 <Route path="/manager" element={user?.role_id === 2 ? <ManagerHome /> : <Navigate to="/" />} />
                 {/*<Route path="/clinician" element={user?.role_id === 3 ? <ClinicianSchedule /> : <Navigate to="/" />}/>*/}
                 <Route path="/clinician" element={<ClinicianSchedule />} />
@@ -34,6 +37,12 @@ function App() {
                     <Route path="/chair-manager-home" element={<Dashboard />} />
                     <Route path="/chair-manager/manage-requests/:assignmentId" element={<ManageRequests />}/>
                     <Route path="/chair-manager/history" element={<RequestHistory />}/>
+                </Route>
+
+                <Route element={<ClinicalAdminLayout />}>
+                    <Route path="/clinicalAdminStudents" element={<ClinicalAdminStudents />} />
+                    <Route path="/clinicalAdminRequests" element={<ClinicalAdminRequests />} />
+                    <Route path="/clinicalAdminAttendance" element={<ClinicalAdminAttendance />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />
