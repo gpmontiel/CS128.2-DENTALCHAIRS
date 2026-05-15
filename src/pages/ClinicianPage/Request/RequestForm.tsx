@@ -3,9 +3,10 @@ import logo from "../../../assets/logo-light.png";
 import { supabase } from "../../../utils/supabase";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Snackbar, Alert } from "@mui/material";
 import { Error } from "@mui/icons-material";
+import dayjs from "dayjs";
 
 const RequestForm = () => {
     const navigate = useNavigate();
@@ -16,6 +17,42 @@ const RequestForm = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [successOpen, setSuccessOpen] = useState(false);
+    const [studentName, setStudentName] = useState("");
+    const [sectionName, setSectionName] = useState("");
+
+    useEffect(() => {
+        const fetchStudentName = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("first_name, last_name")
+                    .eq("profile_id", user.id)
+                    .single();
+                
+                if (profile) {
+                    setStudentName(`${profile.first_name} ${profile.last_name}`);
+                }
+            }
+        };
+        
+        fetchStudentName();
+    }, []);
+
+    const getSectionName = (sectionId: string) => {
+        const sections: { [key: string]: string } = {
+            "1": "Triage",
+            "2": "OS",
+            "3": "Perio",
+            "4": "Endo",
+            "5": "FPD",
+            "6": "Resto",
+            "7": "RPD",
+            "8": "Complete Denture",
+            "9": "Ortho"
+        };
+        return sections[sectionId] || sectionId;
+    };
 
     const toggleSubmitModal = () => {
         setSubmitModal(!submitModal);
@@ -49,6 +86,35 @@ const RequestForm = () => {
         }
 
         console.log("Inserted successfully:", insertData);
+
+        const sectionDisplayName = getSectionName(chosenSection);
+        const formattedDate = dayjs(chosenDate).format("MMMM D, YYYY");
+
+        const { data: chairManagerAssignment, error: chairManagerError } = await supabase
+            .from("chair_manager_assignment")
+            .select("student_id")
+            .eq("date", chosenDate)
+            .single();
+
+        if (chairManagerError) {
+            console.error("Error finding chair manager for this date:", chairManagerError);
+        } else if (chairManagerAssignment) {
+            const { error: notifError } = await supabase
+                .from("notifications")
+                .insert({
+                    user_id: chairManagerAssignment.student_id,
+                    type: "request",
+                    title: "[CM] New Chair Request",
+                    message: `${studentName || "A student"} requested a dental chair for ${sectionDisplayName} - ${shift} shift on ${formattedDate}.`,
+                    is_read: false,
+                });
+
+            if (notifError) {
+                console.error("Error sending notification:", notifError);
+            } else {
+                console.log("Notification sent to chair manager successfully");
+            }
+        }
 
         setSubmitModal(false);
         setSuccessOpen(true);
