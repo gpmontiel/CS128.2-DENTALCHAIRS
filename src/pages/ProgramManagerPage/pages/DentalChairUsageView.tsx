@@ -8,17 +8,6 @@ import { FiEye } from "react-icons/fi";
 import ExportModal from "../components/ExportModal";
 import { fetchDentalRoomService } from "../services/fetchDentalRoomService";
 
-type DentalRoomRow = {
-  section_id: string;
-  section_name: string;
-  chair_count: number;
-
-  rooms: {
-    room_id: string;
-    room_name: string;
-  }[];
-};
-
 type GroupedRoom = {
   id: string;
   name: string;
@@ -42,31 +31,33 @@ const DentalChairUsageView: React.FC = () => {
 
         const groupedRooms: Record<string, GroupedRoom> = {};
 
-        (data as DentalRoomRow[]).forEach((item) => {
+        data.forEach((item: any) => {
 
-          if (!item.rooms || item.rooms.length === 0) return;
+          if (!item.rooms) return;
 
-          const room = item.rooms[0];
-
-          const roomId = room.room_id;
+          const roomId = item.rooms.room_id;
 
           if (!groupedRooms[roomId]) {
 
             groupedRooms[roomId] = {
               id: roomId,
-              name: room.room_name,
+              name: item.rooms.room_name,
               descriptions: [],
               chairCount: 0,
             };
 
           }
 
-          groupedRooms[roomId].descriptions.push(
-            item.section_name
-          );
+          if (item.section_name) {
+
+            groupedRooms[roomId].descriptions.push(
+              item.section_name
+            );
+
+          }
 
           groupedRooms[roomId].chairCount +=
-            item.chair_count;
+            item.chair_count || 0;
 
         });
 
