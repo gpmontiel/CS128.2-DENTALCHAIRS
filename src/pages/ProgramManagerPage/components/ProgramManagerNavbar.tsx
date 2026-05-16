@@ -2,28 +2,16 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-light.png";
 
-import {
-    AppBar,
-    Box,
-    Toolbar,
-    Typography,
-    Container,
-    Avatar,
-    Divider,
-    Menu,
-    MenuItem,
-    IconButton
-} from "@mui/material";
-
+import {AppBar, Box, Toolbar, Typography, Container, Avatar, Divider, Menu, MenuItem, IconButton} from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 
-import { supabase } from "../../../utils/supabase.ts";
+import { supabase } from "../../../utils/supabase";
+import "../css/Navbar.css";
 
 const ResponsiveAppBar: React.FC = () => {
     const navigate = useNavigate();
 
-    // DESKTOP MENU
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
@@ -35,127 +23,121 @@ const ResponsiveAppBar: React.FC = () => {
         setAnchorEl(null);
     };
 
-    // USER STATE
-    const [firstName, setFirstName] = React.useState<string>("User");
-    const [lastName, setLastName] = React.useState<string>("User");
-    const [userInitial, setUserInitial] = React.useState<string>("U");
-    const [userRole, setUserRole] = React.useState<string>("");
-    const [pfpUrl, setPfpUrl] = React.useState<string>("");
+    const [firstName, setFirstName] = React.useState("User");
+    const [lastName, setLastName] = React.useState("User");
+    const [userInitial, setUserInitial] = React.useState("U");
+    const [userRole, setUserRole] = React.useState("");
+    const [pfpUrl, setPfpUrl] = React.useState("");
 
     React.useEffect(() => {
         const fetchUserProfile = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return;
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select("first_name, last_name, role_id, pfp")
-                    .eq("profile_id", user.id)
-                    .single();
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("first_name, last_name, role_id, pfp")
+                .eq("profile_id", user.id)
+                .single();
 
-                if (profile) {
-                    const fn = profile.first_name || "User";
-                    const ln = profile.last_name || "";
+            if (profile) {
+                setFirstName(profile.first_name || "User");
+                setLastName(profile.last_name || "");
+                setUserInitial(profile.first_name?.charAt(0).toUpperCase() || "U");
+                setPfpUrl(profile.pfp || "");
 
-                    setFirstName(fn);
-                    setLastName(ln);
-                    setUserInitial(fn.charAt(0).toUpperCase());
-                    setPfpUrl(profile.pfp || "");
+                if (profile.role_id) {
+                    const { data: role } = await supabase
+                        .from("roles")
+                        .select("role")
+                        .eq("role_id", profile.role_id)
+                        .single();
 
-                    if (profile.role_id) {
-                        const { data: role } = await supabase
-                            .from("roles")
-                            .select("role")
-                            .eq("role_id", profile.role_id)
-                            .single();
-
-                        setUserRole(role?.role || "");
-                    }
+                    setUserRole(role?.role || "Program Manager");
                 }
-            } catch (err) {
-                console.error(err);
             }
         };
 
         fetchUserProfile();
     }, []);
 
-    // NAVIGATION
     const handleProfile = () => {
-        navigate("/program-manager/profile");
         handleCloseMenu();
+        navigate("/program-manager/profile");
     };
 
     const handleLogout = async () => {
+        handleCloseMenu();
         await supabase.auth.signOut();
-        navigate("/");
+        navigate("/", { replace: true });
     };
 
     return (
-        <AppBar position="static" elevation={0} sx={{ backgroundColor: "#493979", py: 1 }}>
-            <Container maxWidth="xl">
-                <Toolbar disableGutters>
+        <AppBar position="static" className="navbar-appbar">
+            <Container maxWidth={false} className="navbar-container">
+                <Toolbar disableGutters className="navbar-toolbar">
 
-                    {/* LOGO */}
+                    {/* LOGO ONLY CLICKABLE */}
                     <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer"
-                        }}
-                        onClick={() => navigate("/")}
+                        className="navbar-logo"
+                        onClick={() => navigate("/manager")}
+                        sx={{ cursor: "pointer" }}
                     >
-                        <img src={logo} alt="Logo" style={{ height: 28 }} />
-                        <Typography
-                            sx={{ fontWeight: 700, color: "#E9B0F8", fontSize: 20 }}
-                        >
+                        <img src={logo} className="navbar-logo-img" />
+                        <Typography className="navbar-title">
                             DenTrack
                         </Typography>
                     </Box>
 
                     <Box sx={{ flexGrow: 1 }} />
 
-                    {/* AVATAR MENU */}
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
-                            <Avatar src={pfpUrl || undefined} sx={{ width: 40, height: 40 }}>
-                                {!pfpUrl && userInitial}
-                            </Avatar>
-                        </IconButton>
+                    {/* AVATAR */}
+                    <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
+                        <Avatar src={pfpUrl || undefined}>
+                            {!pfpUrl && userInitial}
+                        </Avatar>
+                    </IconButton>
 
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={openMenu}
-                            onClose={handleCloseMenu}
-                            transformOrigin={{ horizontal: "right", vertical: "top" }}
-                            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                        >
-                            <Box sx={{ px: 2, py: 1 }}>
-                                <Typography fontWeight={600}>
-                                    {lastName}, {firstName}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    {userRole}
-                                </Typography>
-                            </Box>
+                    {/* MENU */}
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleCloseMenu}
+                        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                        transformOrigin={{ horizontal: "right", vertical: "top" }}
+                        slotProps={{
+                            paper: {
+                                className: "navbar-menu-paper"
+                            }
+                        }}
+                    >
+                        {/* USER INFO */}
+                        <Box className="navbar-userbox">
+                            <Typography fontWeight={600}>
+                                {lastName}, {firstName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                {userRole}
+                            </Typography>
+                        </Box>
 
-                            <Divider />
+                        <Divider />
 
-                            <MenuItem onClick={handleProfile}>
-                                <PersonIcon fontSize="small" />
-                                <Typography sx={{ ml: 1 }}>Profile</Typography>
-                            </MenuItem>
+                        {/* PROFILE */}
+                        <MenuItem onClick={handleProfile}>
+                            <PersonIcon fontSize="small" />
+                            <Typography sx={{ ml: 1 }}>Profile</Typography>
+                        </MenuItem>
 
-                            <Divider />
+                        <Divider />
 
-                            <MenuItem onClick={handleLogout}>
-                                <LogoutIcon fontSize="small" />
-                                <Typography sx={{ ml: 1 }}>Logout</Typography>
-                            </MenuItem>
-                        </Menu>
-                    </Box>
+                        {/* LOGOUT */}
+                        <MenuItem onClick={handleLogout} className="logout-item">
+                            <LogoutIcon fontSize="small" />
+                            <Typography sx={{ ml: 1 }}>Logout</Typography>
+                        </MenuItem>
+
+                    </Menu>
 
                 </Toolbar>
             </Container>

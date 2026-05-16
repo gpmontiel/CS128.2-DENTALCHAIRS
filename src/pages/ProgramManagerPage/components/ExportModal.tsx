@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiX, FiDownload, FiCalendar } from "react-icons/fi";
+import { FiX, FiDownload } from "react-icons/fi"; // ❌ removed FiCalendar
 import "../css/ExportModal.css";
 
 interface ExportModalProps {
@@ -14,6 +14,9 @@ const ExportModal: React.FC<ExportModalProps> = ({
   const [timeframe, setTimeframe] = useState<
     "weekly" | "monthly" | "custom"
   >("weekly");
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   if (!isOpen) return null;
 
@@ -65,24 +68,21 @@ const ExportModal: React.FC<ExportModalProps> = ({
               onClick={() => setTimeframe("custom")}
             >
               <strong>Custom Range</strong>
-              <span className="set-dates">
-                Set Dates <FiCalendar />
-              </span>
+              <span>Set Dates</span>
             </button>
           </div>
 
-          {/* ✅ ONLY SHOW WHEN CUSTOM IS SELECTED */}
+          {/* CUSTOM DATE PICKER */}
           {timeframe === "custom" && (
             <div className="date-inputs-container">
               <div className="date-field">
                 <label>From:</label>
                 <div className="input-wrapper">
                   <input
-                    type="text"
-                    placeholder="Start Date"
-                    readOnly
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                   />
-                  <FiCalendar className="input-icon" />
                 </div>
               </div>
 
@@ -92,11 +92,10 @@ const ExportModal: React.FC<ExportModalProps> = ({
                 <label>To:</label>
                 <div className="input-wrapper">
                   <input
-                    type="text"
-                    placeholder="End Date"
-                    readOnly
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
                   />
-                  <FiCalendar className="input-icon" />
                 </div>
               </div>
             </div>

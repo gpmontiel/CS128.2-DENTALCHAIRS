@@ -6,6 +6,7 @@ import DentalChairUsageView from "./DentalChairUsageView";
 
 import TabPills from "../components/TabPills";
 import { TABS, type TabValue } from "../config/tabs";
+import '../css/ManagerHomePage.css';
 
 const ManagerHome: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabValue>("attendance");

@@ -9,11 +9,11 @@
 
 /* WRAPPER & CONTAINER */
 .attendance-wrapper {
-  min-height: 100vh;
-  background-color: #ffffff;
-  width: 93%;
+  height: auto;
+  width: 90%;
   max-width: 1150px;
   margin: 5px auto 0 auto;
+  margin-bottom: 25px;
   padding: 10px;
 }
 
@@ -170,7 +170,7 @@
 /* EXPORT BUTTON */
 .btn-export-group {
   flex: 1;
-  background-color: #493979;
+  background-color: #9268bc;
   color: white;
   border: none;
   border-radius: 14px;
@@ -182,15 +182,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(73, 57, 121, 0.18);
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-export-group:hover {
-  background-color: #5a468f;
+  background-color: #ac7fdf;
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(73, 57, 121, 0.25);
 }
 
 /* MAIN CONTENT AREA */

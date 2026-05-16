@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  FiSearch,
-  FiX,
-  FiFileText,
-} from "react-icons/fi";
+import { FiSearch, FiX, FiFileText } from "react-icons/fi";
 import "../css/StudentAttendancePage.css";
 import ExportModal from "../components/ExportModal";
 
@@ -21,7 +17,7 @@ const StudentAttendanceView: React.FC = () => {
   const [selected, setSelected] = useState<GroupType>(groups[0]);
   const [open, setOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const handleSelect = (group: GroupType) => {
@@ -49,22 +45,37 @@ const StudentAttendanceView: React.FC = () => {
       <div className="attendance-container">
         <div className="toolbar">
 
-          {/* SEARCH BAR (RESTORED EXACT STRUCTURE) */}
+          {/* SEARCH BAR */}
           <div className="search-bar">
             <FiSearch className="search-icon" />
+
+            {/* CONTROLLED INPUT */}
             <input
               type="text"
               placeholder="Search Student"
               className="input-field"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-            <button className="btn-clear">
-              <FiX />
-            </button>
+
+            {/* CLEAR BUTTON */}
+            {search && (
+              <button
+                className="btn-clear"
+                onClick={() => setSearch("")}
+                type="button"
+              >
+                <FiX />
+              </button>
+            )}
           </div>
 
           {/* DROPDOWN */}
           <div className="dropdown" ref={dropdownRef}>
-            <div className="dropdown-trigger" onClick={() => setOpen(!open)}>
+            <div
+              className="dropdown-trigger"
+              onClick={() => setOpen(!open)}
+            >
               <span>{selected}</span>
               <span>{open ? "▴" : "▾"}</span>
             </div>

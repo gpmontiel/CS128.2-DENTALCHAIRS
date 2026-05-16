@@ -15,6 +15,8 @@ import ManageRequests from "./pages/ChairManagerPage/pages/ManageRequests.tsx";
 import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
 import RequestHistoryDetails from "./pages/ChairManagerPage/pages/RequestHistoryDetails.tsx";
 import ChairManagerNotificationsPage from "./pages/ChairManagerPage/pages/ChairManagerNotificationsPage.tsx";
+import ManagerProfile from "./pages/ProgramManagerPage/profile-pages/Profile.tsx";
+import EditProfile from "./pages/ProgramManagerPage/profile-pages/EditProfile";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -43,6 +45,8 @@ function App() {
                     <Route path="/chair-manager-notifications" element={<ChairManagerNotificationsPage />} />
                 </Route>
 
+                <Route path="/program-manager/profile" element={<ManagerProfile />}/>
+                <Route path="/program-manager/profile/edit" element={<EditProfile />}/>
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>
