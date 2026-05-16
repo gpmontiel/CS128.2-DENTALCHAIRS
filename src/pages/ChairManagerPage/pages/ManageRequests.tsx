@@ -100,7 +100,7 @@ const ManageRequests = () => {
         fetchRequestCount();
     }, [assignment]);
 
-    const getProgressStyles = (available, total) => {
+    const getProgressStyles = (available: number, total: number) => {
         const ratio = available / total;
 
         if (ratio === 0) {
