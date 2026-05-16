@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiSearch, FiX, FiFileText } from "react-icons/fi";
 import "../css/StudentAttendancePage.css";
 import ExportModal from "../components/ExportModal";
+import { fetchStudentCMService } from "../services/fetchStudentCMService";
+import type { ChairManagerStudent } from "../services/fetchStudentCMService";
+import { FiEye } from "react-icons/fi";
+import { FaTooth } from "react-icons/fa6";
 
 const groups = [
   "All Student Groups",
@@ -13,11 +17,20 @@ const groups = [
 
 type GroupType = typeof groups[number];
 
+const groupColors: Record<string, string> = {
+  "PCB Sinag": "#7C3AED",
+  "PCB Agos": "#2563EB",
+  "PCB Banaag": "#F59E0B",
+  "Non-PCB": "#10B981",
+};
+
 const StudentAttendanceView: React.FC = () => {
   const [selected, setSelected] = useState<GroupType>(groups[0]);
   const [open, setOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [students, setStudents] = useState<ChairManagerStudent[]>([]);
+
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const handleSelect = (group: GroupType) => {
@@ -25,6 +38,7 @@ const StudentAttendanceView: React.FC = () => {
     setOpen(false);
   };
 
+  // close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -40,31 +54,36 @@ const StudentAttendanceView: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // fetch data
+  useEffect(() => {
+    const load = async () => {
+      const data = await fetchStudentCMService(selected, search);
+      setStudents(data);
+    };
+
+    load();
+  }, [selected, search]);
+
   return (
     <div className="attendance-wrapper">
       <div className="attendance-container">
+
+        {/* TOOLBAR */}
         <div className="toolbar">
 
-          {/* SEARCH BAR */}
+          {/* SEARCH */}
           <div className="search-bar">
             <FiSearch className="search-icon" />
 
-            {/* CONTROLLED INPUT */}
             <input
-              type="text"
-              placeholder="Search Student"
-              className="input-field"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search Student by Name"
+              className="input-field"
             />
 
-            {/* CLEAR BUTTON */}
             {search && (
-              <button
-                className="btn-clear"
-                onClick={() => setSearch("")}
-                type="button"
-              >
+              <button className="btn-clear" onClick={() => setSearch("")}>
                 <FiX />
               </button>
             )}
@@ -97,7 +116,7 @@ const StudentAttendanceView: React.FC = () => {
             )}
           </div>
 
-          {/* EXPORT BUTTON */}
+          {/* EXPORT GROUP */}
           <button
             className="btn-export-group"
             onClick={() => setIsModalOpen(true)}
@@ -105,10 +124,60 @@ const StudentAttendanceView: React.FC = () => {
             <FiFileText style={{ marginRight: 6 }} />
             Group Export
           </button>
+
         </div>
 
+        {/* STUDENTS */}
         <div className="student-content">
-          Student Attendance Content Here
+
+          {students.length === 0 ? (
+            <p className="no-student-content">No students were found.</p>
+          ) : (
+            students.map((student) => {
+              const color =
+                groupColors[student.group_name] || "#64748b";
+
+              return (
+                <div
+                  key={student.student_id}
+                  className="student-card"
+                >
+                  <img
+                    src={student.pfp || ""}
+                    className="student-pfp"
+                  />
+
+                  <div className="student-info">
+                    <h3>
+                      {student.first_name} {student.last_name}
+                    </h3>
+
+                    <p className="student-number">
+                      {student.student_number}
+                    </p>
+
+                    <span
+                      className="group-badge"
+                      style={{
+                        backgroundColor: `${color}15`,
+                        color,
+                        border: `1px solid ${color}40`,
+                      }}
+                    > <FaTooth /> 
+                      {student.group_name}
+                    </span>
+                  </div>
+
+                  <button
+                    className="export-individual-btn"
+                  > <FiEye />
+                    View Attendance
+                  </button>
+                </div>
+              );
+            })
+          )}
+
         </div>
       </div>
 

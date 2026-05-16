@@ -1,63 +1,101 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../css/DentalChairUsagePage.css';
 
 import { FaFilePdf } from "react-icons/fa";
 import { MdAirlineSeatReclineNormal } from "react-icons/md";
+import { FiEye } from "react-icons/fi";
+
 import ExportModal from "../components/ExportModal";
+import { fetchDentalRoomService } from "../services/fetchDentalRoomService";
 
-const clinicSections = [
-  {
-    id: 'OD',
-    name: 'OD',
-    description: 'Oral Diagnosis, Triage',
-    chairCount: 4,
-    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 'OS',
-    name: 'OS',
-    description: 'No Recorded Sections',
-    chairCount: 8,
-    image: 'https://www.docseducation.com/sites/default/files/inline-images/bl-ex-5_25.jpg',
-  },
-  {
-    id: 'OM',
-    name: 'OM',
-    description: 'Perio, Endo',
-    chairCount: 26,
-    image: 'https://s3-media0.fl.yelpcdn.com/bphoto/cxqdwB4u1F0DEHF6yK9jxg/348s.jpg',
-  },
-  {
-    id: 'OP',
-    name: 'OP',
-    description: 'FPD, Resto',
-    chairCount: 28,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRFLGFgh3M1T0c3eUB9ogPo7GlL9T04CdGZQ&s',
-  },
-  {
-    id: 'PROSTHO',
-    name: 'PROSTHO',
-    description: 'RPD, Complete Dentures',
-    chairCount: 26,
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmRyX4oupk9hcDKh6ijR6ddjv5kZKdA3a7aA&s',
-  },
-  {
-    id: 'ORTHO',
-    name: 'ORTHO',
-    description: 'No Recorded Sections',
-    chairCount: 12,
-    image: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=300&q=80',
-  },
-];
+type DentalRoomRow = {
+  section_id: string;
+  section_name: string;
+  chair_count: number;
 
-const DentalChairUsageView = () => {
+  rooms: {
+    room_id: string;
+    room_name: string;
+  }[];
+};
+
+type GroupedRoom = {
+  id: string;
+  name: string;
+  descriptions: string[];
+  chairCount: number;
+};
+
+const DentalChairUsageView: React.FC = () => {
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [clinicSections, setClinicSections] = useState<GroupedRoom[]>([]);
+
+  useEffect(() => {
+
+    const loadRooms = async () => {
+
+      try {
+
+        const data = await fetchDentalRoomService();
+
+        const groupedRooms: Record<string, GroupedRoom> = {};
+
+        (data as DentalRoomRow[]).forEach((item) => {
+
+          if (!item.rooms || item.rooms.length === 0) return;
+
+          const room = item.rooms[0];
+
+          const roomId = room.room_id;
+
+          if (!groupedRooms[roomId]) {
+
+            groupedRooms[roomId] = {
+              id: roomId,
+              name: room.room_name,
+              descriptions: [],
+              chairCount: 0,
+            };
+
+          }
+
+          groupedRooms[roomId].descriptions.push(
+            item.section_name
+          );
+
+          groupedRooms[roomId].chairCount +=
+            item.chair_count;
+
+        });
+
+        setClinicSections(
+          Object.values(groupedRooms)
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Failed to fetch dental rooms:",
+          error
+        );
+
+      }
+
+    };
+
+    loadRooms();
+
+  }, []);
+
   return (
+
     <div className="dentrack-container">
 
       {/* TOP BUTTON */}
       <div className="global-action-container">
+
         <button
           className="btn-download-all"
           onClick={() => setIsModalOpen(true)}
@@ -65,82 +103,114 @@ const DentalChairUsageView = () => {
           <FaFilePdf />
           Export All Chair Usage
         </button>
+
       </div>
 
       {/* TABLE */}
       <div className="table-responsive">
+
         <table className="dent-table">
 
           <thead>
             <tr>
-              <th>Clinic Section</th>
-              <th>Detailed Sections</th>
+              <th>Clinic Rooms</th>
+              <th>Clinic Sections</th>
               <th>Chair Count</th>
-              <th>Report</th>
+              <th>Dental Chair Usage Report</th>
             </tr>
           </thead>
 
           <tbody>
+
             {clinicSections.map((section) => (
+
               <tr key={section.id}>
 
-                {/* SECTION */}
-                <td className="col-section" data-label="Clinic Section">
+                {/* ROOM */}
+                <td
+                  className="col-section"
+                  data-label="Clinic Rooms"
+                >
                   <div className="section-flex">
-                    <img
-                      src={section.image}
-                      className="section-img-enlarged"
-                      alt={section.name}
-                    />
+
                     <span className="section-title-badge">
                       {section.name}
                     </span>
+
                   </div>
                 </td>
 
-                {/* DETAILS */}
-                <td className="col-details-narrow" data-label="Detailed Sections">
+                {/* SECTIONS */}
+                <td
+                  className="col-details-narrow"
+                  data-label="Clinic Sections"
+                >
                   <div className="pill-container">
-                    {section.description.includes('No Recorded Sections') ? (
+
+                    {section.descriptions.length === 0 ? (
+
                       <span className="pill-badge pill-empty">
-                        {section.description}
+                        No Recorded Sections
                       </span>
+
                     ) : (
-                      section.description.split(',').map((tag, i) => (
-                        <span key={i} className="pill-badge">
-                          {tag.trim()}
+
+                      section.descriptions.map((tag, i) => (
+
+                        <span
+                          key={i}
+                          className="pill-badge"
+                        >
+                          {tag}
                         </span>
+
                       ))
+
                     )}
+
                   </div>
                 </td>
 
                 {/* COUNT */}
-                <td className="col-count" data-label="Chair Count">
+                <td
+                  className="col-count"
+                  data-label="Chair Count"
+                >
                   <div className="chair-count-flex">
-                    <MdAirlineSeatReclineNormal className="icon-chair" />
+
+                    <MdAirlineSeatReclineNormal
+                      className="icon-chair"
+                    />
+
                     <span className="count-number">
                       {section.chairCount}
                     </span>
+
                   </div>
                 </td>
 
                 {/* ACTION */}
-                <td className="col-action" data-label="Report">
+                <td
+                  className="col-action"
+                  data-label="Report"
+                >
                   <button
                     className="btn-row-download"
                     onClick={() => setIsModalOpen(true)}
                   >
-                    <FaFilePdf />
-                    Generate Report
+                    <FiEye />
+                    View Room Report
                   </button>
                 </td>
 
               </tr>
+
             ))}
+
           </tbody>
 
         </table>
+
       </div>
 
       {/* MODAL */}
@@ -148,8 +218,11 @@ const DentalChairUsageView = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
     </div>
+
   );
+
 };
 
 export default DentalChairUsageView;

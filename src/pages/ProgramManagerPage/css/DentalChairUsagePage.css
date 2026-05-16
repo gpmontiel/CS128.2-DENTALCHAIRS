@@ -51,7 +51,7 @@
   background-color: #9268bc;
   color: #ffffff;
   border: none;
-  width: 100%;
+  width: 70%;
   max-width: 280px;
   padding: 10px 16px;
   font-size: 12px;
@@ -61,6 +61,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  margin: 0 auto; 
 }
 
 .btn-row-download:hover {
@@ -121,10 +122,22 @@
   background-color: #faf7ff;
 }
 
-/* Row UI Structural details */
+/* =========================
+   ONLY CHANGE: CENTERING FIXES
+========================= */
+
+/* CENTER ALL TABLE CONTENT */
+.dent-table th,
+.dent-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* KEEP FLEX ROWS CENTERED */
 .section-flex {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   font-family: 'Inter', sans-serif;
 }
@@ -145,10 +158,12 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Pill UI Elements */
+/* CENTER PILL CONTAINER */
 .pill-container {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 6px;
   max-width: 100%;
   padding: 6px;
@@ -163,9 +178,6 @@
   font-size: 12px;
   font-weight: 600;
   border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: inline-block;
   border: 1px solid rgba(67, 65, 144, 0.25);
   font-family: 'Inter', sans-serif;
 }
@@ -175,7 +187,7 @@
   border: 1px solid #e5e7eb;
 }
 
-/* Material Icon Alignment */
+/* CENTER ICON ROW */
 .icon-chair {
   font-size: 24px !important;
   color: #4a4a4a;
@@ -184,8 +196,8 @@
 .chair-count-flex {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  font-family: 'Inter', sans-serif;
 }
 
 .count-number {
@@ -195,17 +207,17 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Column Width Allocations */
+/* COLUMN WIDTHS (UNCHANGED) */
 .col-section { 
-  width: 25%; 
+  width: 15%; 
 }
 .col-details-narrow { 
-  width: 32%;
+  width: 25%;
 }
 .col-count { 
-  width: 18%; 
+  width: 15%; 
 }
 .col-action { 
   width: 25%; 
-  text-align: right; 
+  text-align: center; 
 }

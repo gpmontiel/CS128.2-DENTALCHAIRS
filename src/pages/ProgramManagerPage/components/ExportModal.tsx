@@ -28,7 +28,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
       >
         {/* HEADER */}
         <div className="modal-header">
-          <h2>Export Report Options</h2>
+          <h2>Exporting Options</h2>
           <button className="close-btn" onClick={onClose}>
             <FiX />
           </button>
