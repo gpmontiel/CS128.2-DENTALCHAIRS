@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
     Box, Typography, Button, IconButton, List, ListItem, 
-    ListItemAvatar, ListItemText, Avatar, Paper, CircularProgress
+    ListItemAvatar, ListItemText, Avatar, Paper, CircularProgress, Chip
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarsIcon from '@mui/icons-material/Stars';
@@ -45,22 +45,31 @@ const Attendance = () => {
                 )
             `)
             .eq('date', formattedDate)
-            .eq('status', 'Approved') 
+            .eq('status', 'Accepted') 
             .eq('sections.rooms.room_id', roomId);
 
         if (!error && data) {
-            const formattedData = data.map((item: any) => ({
-                ...item,
-                // Ensure we pull the status from the first item in the attendance array
-                current_attendance: (item.attendance && item.attendance.length > 0) 
-                    ? item.attendance[0].status 
-                    : null
-            }));
+            const formattedData = data.map((item: any) => {
+                // Safely parse the status from the attendance table relation
+                let currentStatus = null;
+                if (item.attendance) {
+                    if (Array.isArray(item.attendance) && item.attendance.length > 0) {
+                        currentStatus = item.attendance[0].status;
+                    } else if (!Array.isArray(item.attendance)) {
+                        currentStatus = (item.attendance as any).status;
+                    }
+                }
+
+                return {
+                    ...item,
+                    current_attendance: currentStatus
+                };
+            });
             setAttendanceList(formattedData);
         } else if (error) {
             console.error("Fetch Error:", error.message);
         }
-        setLoading(false); // Move this outside the if block
+        setLoading(false);
     };
 
     const handleRoomClick = (room: any) => {
@@ -70,9 +79,9 @@ const Attendance = () => {
     };
 
     const handleAttendanceAction = async (requestId: number, status: string) => {
-        console.log("Attempting to mark:", status, "for Request ID:", requestId);
+        console.log("Marking status in DB...", status);
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('attendance')
             .upsert(
                 { 
@@ -80,38 +89,38 @@ const Attendance = () => {
                     status: status 
                 }, 
                 { onConflict: 'request_id' } 
-            )
-            .select();
+            );
 
         if (error) {
-            // LOOK HERE: If this logs "403" or "PGRST", it's a permission/RLS issue
-            console.error("Supabase Error:", error.message, error.details);
-            alert("Error saving: " + error.message); 
+            console.error("Supabase Upsert Error:", error.message);
+            alert("Error saving attendance: " + error.message); 
         } else {
-            console.log("Saved successfully:", data);
-            // Refresh the list so the buttons turn purple/red
-            if (selectedRoom) fetchAttendance(selectedRoom.id);
+            console.log("Saved successfully! Re-checking Supabase entry...");
+            
+            // This forces the app to go back to Supabase, check the entry, and update the UI
+            if (selectedRoom) {
+                await fetchAttendance(selectedRoom.id);
+            }
         }
     };
 
-    // --- NEW DATE SCROLLER VIEW ---
+    // --- DATE SCROLLER VIEW ---
     const renderCalendar = () => (
         <Box sx={{ p: 3 }}>
             <Typography variant="h5" sx={{ fontWeight: 700, color: '#493979', mb: 3 }}>
                 Attendance
             </Typography>
             
-            {/* Horizontal Scroller */}
             <Box sx={{ 
                 display: 'flex', 
                 gap: 2, 
                 overflowX: 'auto', 
                 pb: 3, 
                 px: 0.5,
-                '&::-webkit-scrollbar': { display: 'none' } // Hide scrollbar for clean look
+                '&::-webkit-scrollbar': { display: 'none' }
             }}>
                 {[...Array(14)].map((_, i) => {
-                    const date = dayjs().add(i - 3, 'day'); // Shows 3 days ago to 10 days ahead
+                    const date = dayjs().add(i - 3, 'day');
                     const isSelected = date.isSame(selectedDate, 'day');
                     const isToday = date.isSame(dayjs(), 'day');
 
@@ -169,7 +178,6 @@ const Attendance = () => {
         </Box>
     );
 
-    // ... renderRooms and renderAttendanceList remain the same as previous logic ...
     const renderRooms = () => (
         <Box sx={{ p: 0 }}>
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -220,37 +228,53 @@ const Attendance = () => {
                                     secondary={`Shift: ${req.shift}`}
                                 />
                                 
-                                {/* Direct Action Buttons */}
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Button 
-                                        variant={req.current_attendance === 'Present' ? "contained" : "outlined"}
-                                        size="small"
-                                        onClick={() => handleAttendanceAction(req.request_id, 'Present')}
+                                {/* LOOK HERE: Conditional rendering for status text vs buttons */}
+                                {req.current_attendance ? (
+                                    <Chip 
+                                        label={req.current_attendance} 
+                                        color={req.current_attendance === 'Present' ? 'success' : 'error'}
+                                        variant="filled"
                                         sx={{ 
-                                            textTransform: 'none', 
-                                            borderRadius: 2, 
-                                            bgcolor: req.current_attendance === 'Present' ? '#5c51b6' : 'transparent',
-                                            '&:hover': { bgcolor: req.current_attendance === 'Present' ? '#493979' : 'rgba(92, 81, 182, 0.04)' } 
-                                        }}
-                                    >
-                                        Present
-                                    </Button>
-                                    <Button 
-                                        variant={req.current_attendance === 'Absent' ? "contained" : "outlined"}
-                                        size="small"
-                                        color="error"
-                                        onClick={() => handleAttendanceAction(req.request_id, 'Absent')}
-                                        sx={{ 
-                                            textTransform: 'none', 
+                                            fontWeight: 600, 
                                             borderRadius: 2,
-                                            // If absent, show red background, else outlined
-                                            bgcolor: req.current_attendance === 'Absent' ? '#d32f2f' : 'transparent',
-                                            color: req.current_attendance === 'Absent' ? 'white' : '#d32f2f'
+                                            minWidth: 80,
+                                            // Optional: Custom color match for your purple theme
+                                            bgcolor: req.current_attendance === 'Present' ? '#5c51b6' : '#d32f2f',
+                                            color: 'white'
                                         }}
-                                    >
-                                        Absent
-                                    </Button>
-                                </Box>
+                                    />
+                                ) : (
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <Button 
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={() => handleAttendanceAction(req.request_id, 'Present')}
+                                            sx={{ 
+                                                textTransform: 'none', 
+                                                borderRadius: 2, 
+                                                color: '#5c51b6',
+                                                borderColor: '#5c51b6',
+                                                '&:hover': { borderColor: '#493979', bgcolor: 'rgba(92, 81, 182, 0.04)' } 
+                                            }}
+                                        >
+                                            Present
+                                        </Button>
+                                        <Button 
+                                            variant="outlined"
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleAttendanceAction(req.request_id, 'Absent')}
+                                            sx={{ 
+                                                textTransform: 'none', 
+                                                borderRadius: 2,
+                                                color: '#d32f2f',
+                                                borderColor: '#d32f2f'
+                                            }}
+                                        >
+                                            Absent
+                                        </Button>
+                                    </Box>
+                                )}
                             </ListItem>
                         ))}
                     </List>
@@ -264,7 +288,7 @@ const Attendance = () => {
     );
 
     return (
-        <Box sx={{minHeight: '100vh', mx: 'auto' }}>
+        <Box sx={{ minHeight: '100vh', mx: 'auto' }}>
             {view === 'calendar' && renderCalendar()}
             {view === 'rooms' && renderRooms()}
             {view === 'list' && renderAttendanceList()}
