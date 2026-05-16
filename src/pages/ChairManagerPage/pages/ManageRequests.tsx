@@ -382,7 +382,7 @@ const ManageRequests = () => {
             await supabase.from("notifications").insert({
                 user_id: selectedStudent.student_id,
                 type: newStatus.toLowerCase(),
-                title: `Chair Request ${newStatus}`,
+                title: `[CL] Chair Request ${newStatus}`,
                 message:
                     newStatus === "Accepted"
                         ? `Your chair request for ${assignment?.section} - ${assignment?.shift} on ${dayjs(assignment?.date).format("MMMM D, YYYY")} has been approved.`

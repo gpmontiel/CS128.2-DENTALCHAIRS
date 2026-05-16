@@ -135,10 +135,10 @@ const RequestSchedule = () => {
                                 </div>
                                 
                                 <div className="room-section-display-container">
-                                    <p style={{ fontSize: "25px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
+                                    <p style={{ fontSize: "23px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
                                         {item.sections?.rooms?.room_name || "No Room"}
                                     </p>
-                                    <p style={{ fontSize: "18px", fontFamily: "Poppins, sans-serif" }}>
+                                    <p style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>
                                         Section: {item.sections?.section_name || "No Section"}
                                     </p>
                                 </div>

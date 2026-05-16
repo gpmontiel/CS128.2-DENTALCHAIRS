@@ -1,15 +1,15 @@
-.notif-container {
+.sched-container {
     background-color: #f5f5f7;
     min-height: 100vh;
 }
 
-.notif-body { 
+.schedule-body { 
     display: flex; 
     justify-content: center; 
     align-items: center; 
 } 
 
-.notif-filter { 
+.schedule-filter { 
     display: flex; 
     gap: 10px;
     background-color: #ffffff; 
@@ -44,15 +44,16 @@
 }
 
 @media (min-width: 1024px) {
-    .notif-filter {
+    .schedule-filter {
         width: 500px;
     }
 }
 
-.notif-filter li { 
+.schedule-filter li { 
     list-style: none; 
     color:#493979;
 } 
+
 
 .add-btn {
     position: fixed;

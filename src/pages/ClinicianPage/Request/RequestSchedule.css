@@ -127,3 +127,10 @@
     border-radius: 15px;
     align-items: center;
 }
+
+.room-section-display-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;          
+    min-width: 0;     
+}

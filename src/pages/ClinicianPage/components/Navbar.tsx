@@ -24,11 +24,22 @@ import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useState, useEffect } from "react"
 import { supabase } from "../../../utils/supabase.ts";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 interface Page {
     name: string;
     path: string;
     icon: React.ReactNode;
+}
+
+interface AppNotification {
+    id: string | number;
+    title: string;
+    message: string;
+    is_read: boolean;
+    created_at: string;
 }
 
 const pages: Page[] = [
@@ -93,6 +104,108 @@ const ResponsiveAppBar: React.FC = () => {
         }
 
         navigate("/");
+    };
+
+    const [notifAnchor, setNotifAnchor] = React.useState<null | HTMLElement>(null);
+    const openNotif = Boolean(notifAnchor);
+
+    const handleNotifClick = (event: React.MouseEvent<HTMLElement>) => {
+        setNotifAnchor(event.currentTarget);
+    };
+
+    const handleNotifClose = () => {
+        setNotifAnchor(null);
+    };
+
+    const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    React.useEffect(() => {
+        const fetchNotifications = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // 1. Initial Fetch
+            const { data, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (error) console.error("Error fetching notifications:", error);
+            else if (data) setNotifications(data);
+
+            // 2. Realtime Subscription
+            const channel = supabase
+                .channel(`user-notifs-${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${user.id}`,
+                    },
+                    (payload) => {
+                        setNotifications((prev) => [payload.new as AppNotification, ...prev]);
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+        };
+
+        fetchNotifications();
+    }, []);
+
+    const handleMarkAllRead = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
+
+        if (!error) {
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        }
+    };
+
+    const formatNotificationTime = (date: string) => {
+        const now = dayjs();
+        const created = dayjs(date);
+
+        const diffInHours = now.diff(created, "hour");
+
+        if (diffInHours < 24) {
+            return created.fromNow(); 
+        }
+
+        return created.format("MMM D, YYYY h:mm A");
+    };
+
+    const handleNotificationClick = async (notif: AppNotification) => {
+        navigate("/clinician-notifications");
+
+        handleNotifClose();
+
+        const { error } = await supabase
+            .from("notifications")
+            .update({ is_read: true })
+            .eq("id", notif.id);
+
+        if (!error) {
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === notif.id ? { ...n, is_read: true } : n
+                )
+            );
+        }
     };
 
     return (
@@ -280,9 +393,9 @@ const ResponsiveAppBar: React.FC = () => {
                         alignItems: "center",
                         gap: 3
                     }}>
-                        <IconButton size="small" sx={{ p: 0.5 }}>
+                        <IconButton onClick={handleNotifClick} size="small" sx={{ p: 0.5 }}>
                             <Badge
-                                badgeContent={2}
+                                badgeContent={unreadCount}
                                 color="info"
                                 overlap="circular"
                                 sx={{
@@ -294,9 +407,119 @@ const ResponsiveAppBar: React.FC = () => {
                                     }
                                 }}
                             >
-                                <NotificationsIcon sx={{ fontSize: 32, color: "white" }} />
+                                <NotificationsIcon sx={{ fontSize: { xs: 26, sm: 30, md: 32 }, color: "white" }} />
                             </Badge>
                         </IconButton>
+
+                        <Menu
+                            anchorEl={notifAnchor}
+                            open={openNotif}
+                            onClose={handleNotifClose}
+                            slotProps={{
+                                paper: {
+                                    sx: {
+                                        width: 320,
+                                        borderRadius: 3, // Slightly rounder for a modern look
+                                        mt: 1.5,
+                                        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15), 0px 2px 8px rgba(0, 0, 0, 0.05)',
+                                        overflow: 'visible',
+                                        '&::before': { // Arrow pointing to the icon
+                                            content: '""',
+                                            display: 'block',
+                                            position: 'absolute',
+                                            top: 0,
+                                            right: 14,
+                                            width: 10,
+                                            height: 10,
+                                            bgcolor: 'background.paper',
+                                            transform: 'translateY(-50%) rotate(45deg)',
+                                            zIndex: 0,
+                                        },
+                                    }
+                                }
+                            }}
+                            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                        >
+                            {/* Header */}
+                            <Box sx={{ px: 2.5, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#493979', fontSize: 21 }}>
+                                    Notifications
+                                </Typography>
+
+                                {notifications.some(n => !n.is_read) && (
+                                    <Button
+                                        size="small"
+                                        onClick={handleMarkAllRead}
+                                        sx={{
+                                            fontSize: '0.75rem',
+                                            textTransform: 'none',
+                                            color: '#493979',
+                                        }}
+                                    >
+                                        Mark all as read
+                                    </Button>
+                                )}
+                            </Box>
+
+                            <Divider />
+
+                            <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                                {notifications.length > 0 ? (
+                                    notifications.map((notif) => (
+                                        <MenuItem
+                                            key={notif.id}
+                                            onClick={() => handleNotificationClick(notif)}
+                                            sx={{
+                                                py: 1.5,
+                                                px: 2.5,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "flex-start",
+                                                whiteSpace: 'normal',
+                                                borderBottom: '1px solid #f0f0f0',
+                                                backgroundColor: notif.is_read ? "transparent" : "rgba(73, 57, 121, 0.04)",
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 0.5 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: notif.is_read ? 500 : 700, flexGrow: 1 }}>
+                                                    {notif.title}
+                                                </Typography>
+                                                {!notif.is_read && (
+                                                    <Box sx={{ width: 8, height: 8, bgcolor: '#493979', borderRadius: '50%', ml: 1 }} />
+                                                )}
+                                            </Box>
+
+                                            <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 500 }}>
+                                                {formatNotificationTime(notif.created_at)}
+                                            </Typography>
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <Typography variant="body2" sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+                                        No new notifications
+                                    </Typography>
+                                )}
+                            </Box>
+
+                            {/* Footer */}
+                            <Button
+                                fullWidth
+                                onClick={() => {
+                                    handleNotifClose();
+                                    navigate("/clinician-notifications");
+                                }}
+                                sx={{
+                                    py: 1.5,
+                                    textTransform: 'none',
+                                    color: '#493979',
+                                    fontWeight: 600,
+                                    fontSize: '0.875rem',
+                                }}
+                            >
+                                View all notifications
+                            </Button>
+                        </Menu>    
 
                         <IconButton
                             size="small"
