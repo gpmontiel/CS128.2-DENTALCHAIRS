@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiSearch, FiX, FiFileText } from "react-icons/fi";
+import { FiSearch, FiX, FiFileText, FiEye } from "react-icons/fi";
+import { FaTooth } from "react-icons/fa6";
+
 import "../css/StudentAttendancePage.css";
 import ExportModal from "../components/ExportModal";
+
 import { fetchStudentCMService } from "../services/fetchStudentCMService";
 import type { ChairManagerStudent } from "../services/fetchStudentCMService";
-import { FiEye } from "react-icons/fi";
-import { FaTooth } from "react-icons/fa6";
+
+import ViewStudentAttendancePopup from "../components/ViewStudentAttendancePopup";
 
 const groups = [
   "All Student Groups",
@@ -18,9 +21,9 @@ const groups = [
 type GroupType = typeof groups[number];
 
 const groupColors: Record<string, string> = {
-  "PCB Sinag": "#7C3AED",
+  "PCB Sinag": "#F59E0B",
   "PCB Agos": "#2563EB",
-  "PCB Banaag": "#F59E0B",
+  "PCB Banaag": "#7C3AED",
   "Non-PCB": "#10B981",
 };
 
@@ -30,6 +33,10 @@ const StudentAttendanceView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [students, setStudents] = useState<ChairManagerStudent[]>([]);
+
+  // POPUP STATES
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -163,14 +170,21 @@ const StudentAttendanceView: React.FC = () => {
                         color,
                         border: `1px solid ${color}40`,
                       }}
-                    > <FaTooth /> 
+                    >
+                      <FaTooth />
                       {student.group_name}
                     </span>
                   </div>
 
+                  {/* ✅ OPEN POPUP FOR THIS STUDENT */}
                   <button
                     className="export-individual-btn"
-                  > <FiEye />
+                    onClick={() => {
+                      setSelectedStudentId(String(student.student_id));
+                      setIsPopupOpen(true);
+                    }}
+                  >
+                    <FiEye />
                     View Attendance
                   </button>
                 </div>
@@ -181,10 +195,20 @@ const StudentAttendanceView: React.FC = () => {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* GROUP EXPORT MODAL */}
       <ExportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* INDIVIDUAL STUDENT POPUP */}
+      <ViewStudentAttendancePopup
+        isOpen={isPopupOpen}
+        studentId={selectedStudentId}
+        onClose={() => {
+          setIsPopupOpen(false);
+          setSelectedStudentId(null);
+        }}
       />
     </div>
   );
