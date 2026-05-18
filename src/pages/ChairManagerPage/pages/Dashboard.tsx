@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Card, Button, Grid, Chip, Dialog, DialogTitle, DialogContent,
-    DialogActions, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert} from "@mui/material";
+import {
+    Box, Typography, Card, Button, Grid, Chip, Dialog, DialogTitle, DialogContent,
+    DialogActions, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert
+} from "@mui/material";
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import SchoolIcon from '@mui/icons-material/School';
@@ -106,7 +108,6 @@ const Dashboard : React.FC = () => {
     const handleFormChange = (field: string, value: any) => {
         setFormData(prev => {
             const newData = { ...prev, [field]: value };
-            // Reset section when room changes
             if (field === 'room') {
                 newData.section = '';
             }
@@ -117,14 +118,21 @@ const Dashboard : React.FC = () => {
     const isFormValid = formData.room && formData.section && formData.date && formData.shift;
 
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+
     const fetchPendingRequests = async () => {
         try {
             const today = new Date().toISOString().split('T')[0];
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
+            // FIXED: Added .eq('student_id', user.id) to scope requests cleanly to the specific user
             const { data, error } = await supabase
                 .from('chair_manager_assignment')
                 .select(`
-                    *,
+                    assignment_id,
+                    date,
+                    shift,
+                    status,
                     section:section_id (
                         section_name,
                         room:room_id (
@@ -133,7 +141,9 @@ const Dashboard : React.FC = () => {
                     )
                 `)
                 .eq('status', 'Pending')
-                .gte('date', today);
+                .eq('student_id', user.id)
+                .gte('date', today)
+                .order('date', { ascending: true });
 
             if (error) throw error;
 
@@ -171,7 +181,7 @@ const Dashboard : React.FC = () => {
                 throw new Error('Selected section not found');
             }
 
-            const { data: existing, error: checkError } = await supabase
+            const { data: slotTaken, error: slotCheckError } = await supabase
                 .from('chair_manager_assignment')
                 .select('assignment_id')
                 .eq('section_id', selectedSection.section_id)
@@ -179,10 +189,28 @@ const Dashboard : React.FC = () => {
                 .eq('shift', formData.shift)
                 .in('status', ['Accepted', 'Confirmed']);
 
-            if (checkError) throw checkError;
+            if (slotCheckError) throw slotCheckError;
 
-            if (existing && existing.length > 0) {
+            if (slotTaken && slotTaken.length > 0) {
                 setSnackbarMessage('A chair manager is already assigned for this section, date, and shift.');
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
+                return;
+            }
+
+            const { data: userExistingShift, error: userCheckError } = await supabase
+                .from('chair_manager_assignment')
+                .select('assignment_id, shift')
+                .eq('student_id', user.id)
+                .eq('section_id', selectedSection.section_id)
+                .eq('date', formattedDate)
+                .in('status', ['Pending', 'Accepted', 'Confirmed']);
+
+            if (userCheckError) throw userCheckError;
+
+            if (userExistingShift && userExistingShift.length > 0) {
+                const existingShift = userExistingShift[0].shift;
+                setSnackbarMessage(`You can only have one shift per section per day. Existing: ${existingShift}.`);
                 setSnackbarSeverity('error');
                 setSnackbarOpen(true);
                 return;
@@ -198,14 +226,15 @@ const Dashboard : React.FC = () => {
             const { data, error } = await supabase
                 .from('chair_manager_assignment')
                 .insert(assignmentData)
-                .select()
+                .select();
 
             if (error) throw error;
 
-            setPendingRequests(prev => [data[0], ...prev]);
+            // Re-fetch pending requests to display transformed nested room details cleanly
+            await fetchPendingRequests();
 
             setFormData({ room: '', section: '', shift: '', date: null });
-            handleClose()
+            handleClose();
 
             setSnackbarMessage('Request submitted successfully!');
             setSnackbarSeverity('success');
@@ -264,18 +293,20 @@ const Dashboard : React.FC = () => {
     }, [])
 
     const [assignmentData, setAssignmentData] = useState<any[]>([]);
-    useEffect(() => {
-        const fetchAssignments = async () => {
-            try {
-                const today = new Date().toISOString().split('T')[0];
 
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return;
+    const fetchAssignments = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-                const { data, error } = await supabase
-                    .from('chair_manager_assignment')
-                    .select(`
-                    *,
+            const { data, error } = await supabase
+                .from('chair_manager_assignment')
+                .select(`
+                    assignment_id,
+                    date,
+                    shift,
+                    status,
                     section:section_id (
                         section_name,
                         room:room_id (
@@ -283,33 +314,30 @@ const Dashboard : React.FC = () => {
                         )
                     )
                 `)
-                    .eq('status', 'Confirmed')
-                    .eq('student_id', user.id)
-                    .gte('date', today)
-                    .order('date', { ascending: true })
-                    .limit(1);
+                .eq('status', 'Confirmed')
+                .eq('student_id', user.id)
+                .gte('date', today)
+                .order('date', { ascending: true });
 
-                if (error) throw error;
+            if (error) throw error;
 
-                const transformedData = data?.map(item => ({
-                    ...item,
-                    room: item.section?.room?.room_name || 'N/A',
-                    section: item.section?.section_name || 'N/A',
-                    date: item.date,
-                    shift: item.shift
-                })) || [];
+            const transformedData = data?.map(item => ({
+                ...item,
+                room: item.section?.room?.room_name || 'N/A',
+                section: item.section?.section_name || 'N/A',
+                date: item.date,
+                shift: item.shift
+            })) || [];
 
-                setAssignmentData(transformedData);
-            } catch (error) {
-                console.error('Error cancelling request:', error);
-                setSnackbarMessage('Failed to cancel request');
-                setSnackbarSeverity('error');
-                setSnackbarOpen(true);
-            }
-        };
+            setAssignmentData(transformedData);
+        } catch (error) {
+            console.error('Error fetching active assignments:', error);
+        }
+    };
 
+    useEffect(() => {
         fetchAssignments();
-    }, [])
+    }, []);
 
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
@@ -329,7 +357,9 @@ const Dashboard : React.FC = () => {
 
             if (error) throw error;
 
+            // Update UI by updating all relevant data arrays
             await fetchPendingRequests();
+            await fetchAssignments();
 
             setSnackbarMessage('Request cancelled successfully');
             setSnackbarSeverity('success');
@@ -372,7 +402,7 @@ const Dashboard : React.FC = () => {
                     )
                 `)
                     .eq('student_id', user.id)
-                    .order('date', { ascending: false }) // newest first
+                    .order('date', { ascending: false })
                     .limit(3);
 
                 if (error) throw error;
@@ -415,22 +445,79 @@ const Dashboard : React.FC = () => {
         switch (status) {
             case 'Pending':
                 return { bg: '#E8F0FE', color: '#1A73E8' };
-
             case 'Ongoing':
                 return { bg: '#FFF4CC', color: '#B26A00' };
-
             case 'Completed':
                 return { bg: '#E6F4EA', color: '#1E7E34' };
-
             case 'Cancelled':
                 return { bg: '#F1F3F4', color: '#5F6368' };
-
             case 'Rejected':
                 return { bg: '#FDECEA', color: '#B3261E' };
-
             default:
                 return { bg: '#F1F3F4', color: '#5F6368' };
         }
+    };
+
+    // Shared UI block helper to render pending cards cleanly under either mode
+    const renderPendingRequestsSection = () => {
+        if (pendingRequests.length === 0) return null;
+
+        return (
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" fontWeight="600" color="#493979" sx={{ mb: 1.5, fontFamily: 'Poppins, sans-serif' }}>
+                    Pending Requests ({pendingRequests.length})
+                </Typography>
+                {pendingRequests.map((request) => (
+                    <Card key={request.assignment_id} sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: '#F3F0FF', border: '1px solid #D8CCFF', boxShadow: 1 }}>
+                        <Grid container rowSpacing={1.5} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid size={6}>
+                                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                    <SchoolIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>Room</Typography>
+                                        <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>{request.room}</Typography>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                            <Grid size={6}>
+                                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                    <MeetingRoomIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>Section</Typography>
+                                        <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>{request.section}</Typography>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                            <Grid size={6}>
+                                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                    <TodayIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>Date</Typography>
+                                        <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>{request.date}</Typography>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                            <Grid size={6}>
+                                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                    <AccessTimeIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>Shift</Typography>
+                                        <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>{request.shift}</Typography>
+                                    </Box>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                        <Button
+                            variant="outlined" fullWidth size="small" onClick={() => handleCancelClick(request.assignment_id)}
+                            sx={{ mt: 2, borderColor: '#dc3545', color: '#dc3545', textTransform: 'none', fontFamily: 'Inter', '&:hover': { borderColor: '#bd2130', bgcolor: '#fdf2f2' } }}
+                            startIcon={<CancelIcon fontSize="small"/>}
+                        >
+                            Cancel Request
+                        </Button>
+                    </Card>
+                ))}
+            </Box>
+        );
     };
 
     return (
@@ -442,124 +529,166 @@ const Dashboard : React.FC = () => {
                 Dashboard
             </Typography>
 
-            {/* Status Card */}
+            {/* Status Section */}
             {isChairManager ? (
-                // Chair Manager View
-                <Card
-                    sx={{
-                        mx: 3,
-                        mb: 3,
-                        p: 2,
-                        borderRadius: 2,
-                        boxShadow: 2,
-                        borderLeft: "5px solid #493979",
-                        backgroundColor: "#F3F0FA"
-                    }}
-                >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip
-                            label="ACTIVE ROLE"
-                            icon={<CircleIcon />}
-                            size="small"
-                            sx={{
-                                fontSize: 10,
-                                px: 0.5,
-                                height: 18,
-                                color: "#B26A00",
-                                backgroundColor: "#FFF4CC",
-                                "& .MuiChip-icon": {
-                                    fontSize: 10,
-                                    color: "#B26A00"
-                                }
-                            }}
-                        />
-
-                        <Typography
-                            variant="caption"
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0.5,
-                                fontSize: 10,
-                                fontWeight: 300,
-                                color: "text.secondary"
-                            }}
-                        >
-                            <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#56567e" }} />
-                            Current Assignment
-                        </Typography>
-                    </Box>
-
-                    <Typography variant="h6" fontWeight="600" fontFamily="Poppins" sx={{ mb: 2 }}>
-                        Assigned Chair Manager
+                // Chair Manager View (Supports Multiple Cards)
+                <Box sx={{ mx: 3, mb: 3 }}>
+                    <Typography
+                        variant="h6"
+                        color="#493979"
+                        fontWeight="700"
+                        fontFamily="Poppins"
+                        sx={{ mb: 2, fontFamily: 'Poppins, sans-serif !important' }}
+                    >
+                        Active Assignments ({assignmentData.length})
                     </Typography>
 
-                    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ mb: 3 }}>
-                        <Grid size={6}>
-                            <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <SchoolIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                        Room
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
-                                        {assignmentData[0]?.room}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Grid>
-                        <Grid size={6}>
-                            <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <MeetingRoomIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                        Section
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
-                                        {assignmentData[0]?.section}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Grid>
-                        <Grid size={6}>
-                            <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <TodayIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                        Date
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
-                                        {assignmentData[0]?.date}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Grid>
-                        <Grid size={6}>
-                            <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <AccessTimeIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                        Shift
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
-                                        {assignmentData[0]?.shift}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Grid>
-                    </Grid>
+                    {assignmentData.map((assignment) => (
+                        <Card
+                            key={assignment.assignment_id}
+                            sx={{
+                                mb: 2,
+                                p: 2,
+                                borderRadius: 2,
+                                boxShadow: 2,
+                                borderLeft: "5px solid #493979",
+                                backgroundColor: "#F3F0FA"
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                    label="ACTIVE ROLE"
+                                    icon={<CircleIcon />}
+                                    size="small"
+                                    sx={{
+                                        fontSize: 10,
+                                        px: 0.5,
+                                        height: 18,
+                                        color: "#B26A00",
+                                        backgroundColor: "#FFF4CC",
+                                        "& .MuiChip-icon": {
+                                            fontSize: 10,
+                                            color: "#B26A00"
+                                        }
+                                    }}
+                                />
 
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        disableElevation
-                        sx={{ backgroundColor: '#493979', fontFamily: 'Inter', textTransform: 'none' }}
-                        startIcon={<GroupsIcon/>}
-                        onClick={() => navigate(`/chair-manager/manage-requests/${assignmentData[0].assignment_id}`)}
-                    >
-                        View Requests
-                    </Button>
-                </Card>
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                        fontSize: 10,
+                                        fontWeight: 300,
+                                        color: "text.secondary"
+                                    }}
+                                >
+                                    <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#56567e" }} />
+                                    Current Assignment
+                                </Typography>
+                            </Box>
+
+                            <Typography variant="h6" fontWeight="600" fontFamily="Poppins" sx={{ mb: 2, mt: 1 }}>
+                                Assigned Chair Manager
+                            </Typography>
+
+                            <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ mb: 3 }}>
+                                <Grid size={6}>
+                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                        <SchoolIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
+                                                Room
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
+                                                {assignment.room}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Grid>
+                                <Grid size={6}>
+                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                        <MeetingRoomIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
+                                                Section
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
+                                                {assignment.section}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Grid>
+                                <Grid size={6}>
+                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                        <TodayIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
+                                                Date
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
+                                                {assignment.date}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Grid>
+                                <Grid size={6}>
+                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                        <AccessTimeIcon sx={{ color: '#6b5ca5', fontSize: 24 }} />
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
+                                                Shift
+                                            </Typography>
+                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14 }}>
+                                                {assignment.shift}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                disableElevation
+                                sx={{ backgroundColor: '#493979', fontFamily: 'Inter', textTransform: 'none' }}
+                                startIcon={<GroupsIcon/>}
+                                onClick={() => navigate(`/chair-manager/manage-requests/${assignment.assignment_id}`)}
+                            >
+                                View Requests
+                            </Button>
+                        </Card>
+                    ))}
+
+                    {/* Request Role Section for active chair managers */}
+                    <Box sx={{ mt: 3, borderTop: '1px solid #4A3979', pt: 2  }}>
+                        <Typography
+                            variant="h6"
+                            color="#493979"
+                            fontWeight="700"
+                            fontFamily="Poppins"
+                            sx={{ mb: 0.5, fontFamily: 'Poppins, sans-serif !important' }}
+                        >
+                            Request Role
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                            Submit another request to manage a different shift
+                        </Typography>
+
+                        {renderPendingRequestsSection()}
+
+                        <Button
+                            variant="outlined"
+                            fullWidth
+                            sx={{ borderColor: '#493979', color: '#493979', textTransform: 'none', fontFamily: 'Inter'}}
+                            startIcon={<AssignmentIndIcon/>}
+                            onClick={handleOpen}
+                        >
+                            Request Role
+                        </Button>
+                    </Box>
+                </Box>
             ) : (
                 // Non-Chair Manager View
                 <Card sx={{ mx: 3, mb: 3, p: 2, borderRadius: 2, boxShadow: 2 }}>
@@ -586,327 +715,121 @@ const Dashboard : React.FC = () => {
                         Assigned Chair Manager
                     </Typography>
 
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                        {pendingRequests.length > 0 ? "Track your pending chair manager request"
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        {pendingRequests.length > 0 ? "Track your pending chair manager requests"
                             : " Submit a request to manage a future shift"}
                     </Typography>
 
-                    {pendingRequests.length > 0 ? (
-                        <Card sx={{
-                            mb: 2,
-                            p: 2,
-                            borderRadius: 2,
-                            bgcolor: '#F3F0FF',
-                            border: '1px solid #D8CCFF',
-                            boxShadow: 1
-                        }}>
-                            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#5E3A8C' }}>  {/* Darker purple text */}
-                                Your Current Request
-                            </Typography>
+                    {renderPendingRequestsSection()}
 
-                            <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                                <Grid size={6}>
-                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                        <SchoolIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />  {/* Purple icon */}
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                                Room
-                                            </Typography>
-                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>  {/* Dark purple text */}
-                                                {pendingRequests[0]?.room}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Grid>
-                                <Grid size={6}>
-                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                        <MeetingRoomIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />  {/* Purple icon */}
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                                Section
-                                            </Typography>
-                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>  {/* Dark purple text */}
-                                                {pendingRequests[0]?.section}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Grid>
-                                <Grid size={6}>
-                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                        <TodayIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />  {/* Purple icon */}
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                                Date
-                                            </Typography>
-                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>  {/* Dark purple text */}
-                                                {pendingRequests[0]?.date}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Grid>
-                                <Grid size={6}>
-                                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                        <AccessTimeIcon sx={{ color: '#8B6FC8', fontSize: 24 }} />  {/* Purple icon */}
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: 10 }}>
-                                                Shift
-                                            </Typography>
-                                            <Typography variant="body1" fontWeight="600" sx={{ fontSize: 14, color: '#4A2B73' }}>  {/* Dark purple text */}
-                                                {pendingRequests[0]?.shift}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-
-                            <Button
-                                variant="outlined"
-                                fullWidth
-                                size="small"
-                                onClick={() => handleCancelClick(pendingRequests[0]?.assignment_id)}
-                                sx={{
-                                    mt: 2,
-                                    borderColor: '#dc3545',
-                                    color: '#dc3545',
-                                    textTransform: 'none',
-                                    fontFamily: 'Inter',
-                                }}
-                                startIcon={<CancelIcon fontSize="small"/>}
-                            >
-                                Cancel Request
-                            </Button>
-                        </Card>
-                    ) : (
-                        <Button
-                            variant="outlined"
-                            fullWidth
-                            sx={{ borderColor: '#493979', color: '#493979', textTransform: 'none', fontFamily: 'Inter'}}
-                            startIcon={<AssignmentIndIcon/>}
-                            onClick={handleOpen}
-                        >
-                            Request Role
-                        </Button>
-                    )}
-
-                    {/* Dialog Form for Requesting to be a Chair Manager */}
-                    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-                        <DialogTitle sx={{ fontWeight: 'bold', pb: 0 }}> Request Role </DialogTitle>
-                        <Typography variant="caption" sx={{ px: 3, color: 'text.secondary' }}>
-                            Please fill in all required information
-                        </Typography>
-                        <DialogContent>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {/* Rooms */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>
-                                        Room
-                                    </Typography>
-
-                                    <FormControl fullWidth required size="small">
-                                        <InputLabel>Select Room</InputLabel>
-                                        <Select
-                                            value={formData.room}
-                                            label="Select Room"
-                                            onChange={(e) => handleFormChange('room', e.target.value)}
-                                        >
-                                            {rooms.map((room) => (
-                                                <MenuItem key={room.room_id} value={room.room_name}>
-                                                    {room.room_name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                {/* Sections */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>
-                                        Section
-                                    </Typography>
-
-                                    <FormControl fullWidth required disabled={!formData.room} size="small">
-                                        <InputLabel>Select Section</InputLabel>
-                                        <Select
-                                            value={formData.section}
-                                            label="Select Section"
-                                            onChange={(e) => handleFormChange('section', e.target.value)}
-                                        >
-                                            {availableSections.map((section) => (
-                                                <MenuItem key={section.section_id} value={section.section_name}>
-                                                    {section.section_name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-
-                                        {!formData.room && (
-                                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                                                Please select a room first
-                                            </Typography>
-                                        )}
-
-                                    </FormControl>
-                                </Box>
-
-                                {/* Shift Dropdown */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>
-                                        Shift
-                                    </Typography>
-
-                                    <FormControl fullWidth required size="small">
-                                        <InputLabel>Select Shift</InputLabel>
-                                        <Select
-                                            value={formData.shift}
-                                            label="Select Shift"
-                                            onChange={(e) => handleFormChange('shift', e.target.value)}
-                                        >
-                                            {shifts.map((shift) => (
-                                                <MenuItem key={shift} value={shift}>
-                                                    {shift}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                {/* Date Picker */}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>
-                                        Date
-                                    </Typography>
-
-                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                        <DatePicker
-                                            label="Choose a Date"
-                                            value={formData.date}
-                                            onChange={(newValue) => handleFormChange('date', newValue)}
-                                            slotProps={{
-                                                textField: {
-                                                    fullWidth: true,
-                                                    required: true,
-                                                    size: "small"
-                                                }
-                                            }}
-                                            disablePast
-                                        />
-                                    </LocalizationProvider>
-                                </Box>
-                            </Box>
-                        </DialogContent>
-
-                        <DialogActions sx={{ gap: 0.5, width: '100%', mb: 1 }}>
-                            <Button
-                                variant="outlined"
-                                onClick={handleClose}
-                                sx={{
-                                    flex: 1,
-                                    textTransform: 'none',
-                                    borderColor: '#493979',
-                                    color: '#493979',
-                                    ml: 1
-                                }}
-                            >
-                                Cancel
-                            </Button>
-
-                            <Button
-                                variant="contained"
-                                onClick={handleSubmit}
-                                disabled={!isFormValid}
-                                sx={{
-                                    flex: 1,
-                                    textTransform: 'none',
-                                    backgroundColor: '#493979',
-                                    color: 'white',
-                                    mr: 1,
-                                    '&.Mui-disabled': {
-                                        backgroundColor: '#ccc',
-                                        color: '#888',
-                                    },
-                                }}
-                            >
-                                Submit
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-
-                    {/* Dialog for Cancelling Chair Manager Request */}
-                    <Dialog
-                        open={cancelDialogOpen}
-                        onClose={handleCancelDialogClose}
-                        maxWidth="sm"
+                    <Button
+                        variant="outlined"
                         fullWidth
+                        sx={{ borderColor: '#493979', color: '#493979', textTransform: 'none', fontFamily: 'Inter'}}
+                        startIcon={<AssignmentIndIcon/>}
+                        onClick={handleOpen}
                     >
-                        <DialogTitle sx={{
-                            fontWeight: 'bold',
-                            color: '#dc3545',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                        }}>
-                            <CancelIcon color="error" />
-                            Cancel Request
-                        </DialogTitle>
-
-                        <DialogContent>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                Are you sure you want to cancel your request? <b> This action cannot be undone. </b>
-                            </Typography>
-                        </DialogContent>
-
-                        <DialogActions sx={{ p: 2, pt: 0, gap: 1 }}>
-                            <Button
-                                variant="outlined"
-                                onClick={handleCancelDialogClose}
-                                sx={{
-                                    flex: 1,
-                                    textTransform: 'none',
-                                    borderColor: '#6c757d',
-                                    color: '#6c757d'
-                                }}
-                            >
-                                Close
-                            </Button>
-
-                            <Button
-                                variant="contained"
-                                onClick={handleConfirmCancel}
-                                sx={{
-                                    flex: 1,
-                                    textTransform: 'none',
-                                    backgroundColor: '#dc3545',
-                                }}
-                            >
-                                Confirm
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-
-                    <Snackbar
-                        open={snackbarOpen}
-                        autoHideDuration={3000}
-                        onClose={handleSnackbarClose}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                        sx={{ mx: 1, my: 1 }}
-                    >
-                        <Alert
-                            onClose={handleSnackbarClose}
-                            severity={snackbarSeverity}
-                            sx={{ width: '100%' }}
-                        >
-                            {snackbarMessage}
-                        </Alert>
-                    </Snackbar>
+                        Request Role
+                    </Button>
                 </Card>
             )}
 
+            {/* Dialog components remain intact */}
+            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: 'bold', pb: 0 }}> Request Role </DialogTitle>
+                <Typography variant="caption" sx={{ px: 3, color: 'text.secondary' }}>
+                    Please fill in all required information
+                </Typography>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>Room</Typography>
+                            <FormControl fullWidth required size="small">
+                                <InputLabel>Select Room</InputLabel>
+                                <Select value={formData.room} label="Select Room" onChange={(e) => handleFormChange('room', e.target.value)}>
+                                    {rooms.map((room) => (
+                                        <MenuItem key={room.room_id} value={room.room_name}>{room.room_name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>Section</Typography>
+                            <FormControl fullWidth required disabled={!formData.room} size="small">
+                                <InputLabel>Select Section</InputLabel>
+                                <Select value={formData.section} label="Select Section" onChange={(e) => handleFormChange('section', e.target.value)}>
+                                    {availableSections.map((section) => (
+                                        <MenuItem key={section.section_id} value={section.section_name}>{section.section_name}</MenuItem>
+                                    ))}
+                                </Select>
+                                {!formData.room && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>Please select a room first</Typography>
+                                )}
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>Shift</Typography>
+                            <FormControl fullWidth required size="small">
+                                <InputLabel>Select Shift</InputLabel>
+                                <Select value={formData.shift} label="Select Shift" onChange={(e) => handleFormChange('shift', e.target.value)}>
+                                    {shifts.map((shift) => (
+                                        <MenuItem key={shift} value={shift}>{shift}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography sx={{ fontWeight: "bold", fontSize: 14 }}>Date</Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Choose a Date" value={formData.date} onChange={(newValue) => handleFormChange('date', newValue)}
+                                    slotProps={{ textField: { fullWidth: true, required: true, size: "small" } }} disablePast
+                                />
+                            </LocalizationProvider>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ gap: 0.5, width: '100%', mb: 1 }}>
+                    <Button variant="outlined" onClick={handleClose} sx={{ flex: 1, textTransform: 'none', borderColor: '#493979', color: '#493979', ml: 1 }}>
+                        Cancel
+                    </Button>
+                    <Button variant="contained" onClick={handleSubmit} disabled={!isFormValid} sx={{ flex: 1, textTransform: 'none', backgroundColor: '#493979', color: 'white', mr: 1, '&.Mui-disabled': { backgroundColor: '#ccc', color: '#888' } }}>
+                        Submit
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={cancelDialogOpen} onClose={handleCancelDialogClose} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: 'bold', color: '#dc3545', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CancelIcon color="error" /> Cancel Request
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                        Are you sure you want to cancel your request? <b> This action cannot be undone. </b>
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2, pt: 0, gap: 1 }}>
+                    <Button variant="outlined" onClick={handleCancelDialogClose} sx={{ flex: 1, textTransform: 'none', borderColor: '#6c757d', color: '#6c757d' }}>
+                        Close
+                    </Button>
+                    <Button variant="contained" onClick={handleConfirmCancel} sx={{ flex: 1, textTransform: 'none', backgroundColor: '#dc3545' }}>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }} sx={{ mx: 1, my: 1 }}>
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMessage}</Alert>
+            </Snackbar>
+
             {/* History Section */}
-            <Box sx={{ mx: 3, mb: 3 }}>
+            <Box sx={{ mx: 3, mb: 3, borderTop: '1px solid #4A3979', pt: 2 }}>
                 <Typography variant="h6" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ mb: 2 }}>
                     History
                 </Typography>
-
-                {/* Recent History Items */}
                 <Box>
                     {historyData.length === 0 ? (
                         <Typography color="text.secondary" fontFamily="Inter" sx={{ mb: 2, textAlign: 'center', width: '100%' }}>
@@ -925,7 +848,6 @@ const Dashboard : React.FC = () => {
                                         sx={{ mb: 1.5, p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                                     >
                                         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                            {/* Date Badge */}
                                             <Box sx={{ textAlign: 'center', backgroundColor: '#F3F0FA', p: 1, borderRadius: 1.5, minWidth: 50, border: '1px solid #E0D7F7' }}>
                                                 <Typography variant="caption" fontWeight="700" color="#493979" sx={{ display: 'block', lineHeight: 1 }}>
                                                     {dayjs(item.date).format('D')}
@@ -934,8 +856,6 @@ const Dashboard : React.FC = () => {
                                                     {dayjs(item.date).format('MMM')}
                                                 </Typography>
                                             </Box>
-
-                                            {/* Details */}
                                             <Box>
                                                 <Typography variant="body2" fontWeight="600" sx={{ color: '#493979', lineHeight: 1.2, fontSize: 18 }}>
                                                     {item.section}
@@ -948,37 +868,13 @@ const Dashboard : React.FC = () => {
                                                 </Typography>
                                             </Box>
                                         </Box>
-
-                                        {/* Status and Action Container */}
                                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                                            <Chip
-                                                label={statusLabel}
-                                                size="small"
-                                                sx={{
-                                                    fontSize: '10px',
-                                                    fontWeight: 'bold',
-                                                    height: '20px',
-                                                    backgroundColor: style.bg,
-                                                    color: style.color,
-                                                    borderRadius: '4px'
-                                                }}
-                                            />
-
+                                            <Chip label={statusLabel} size="small" sx={{ fontSize: '10px', fontWeight: 'bold', height: '20px', backgroundColor: style.bg, color: style.color, borderRadius: '4px' }} />
                                             {(statusLabel === 'Ongoing' || statusLabel === 'Completed') && (
                                                 <Button
-                                                    size="small"
-                                                    variant="text"
-                                                    sx={{
-                                                        textTransform: 'none',
-                                                        color: '#493979',
-                                                        fontWeight: 600,
-                                                        fontSize: 12,
-                                                        p: 0,
-                                                        minWidth: 0
-                                                    }}
+                                                    size="small" variant="text" sx={{ textTransform: 'none', color: '#493979', fontWeight: 600, fontSize: 12, p: 0, minWidth: 0 }}
                                                     onClick={() => {
                                                         const status = getHistoryStatus(item);
-
                                                         if (status === "Ongoing") {
                                                             navigate(`/chair-manager/manage-requests/${item.assignment_id}`);
                                                         } else {
@@ -993,10 +889,7 @@ const Dashboard : React.FC = () => {
                                     </Card>
                                 );
                             })}
-
-                            {/* View More Button */}
-                            <Button fullWidth sx={{ mt: 1, mb: 4, color: 'text.secondary', textTransform: 'none', fontSize: 13, textDecoration: 'underline' }}
-                                onClick={() => navigate('/chair-manager/history')}>
+                            <Button fullWidth sx={{ mt: 1, mb: 4, color: 'text.secondary', textTransform: 'none', fontSize: 13, textDecoration: 'underline' }} onClick={() => navigate('/chair-manager/history')}>
                                 View more on history page
                             </Button>
                         </>
