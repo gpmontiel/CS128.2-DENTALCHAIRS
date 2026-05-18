@@ -125,7 +125,6 @@ const Dashboard : React.FC = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // FIXED: Added .eq('student_id', user.id) to scope requests cleanly to the specific user
             const { data, error } = await supabase
                 .from('chair_manager_assignment')
                 .select(`
@@ -223,7 +222,7 @@ const Dashboard : React.FC = () => {
                 date: formattedDate,
             };
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('chair_manager_assignment')
                 .insert(assignmentData)
                 .select();

@@ -22,17 +22,17 @@ const RequestHistory = () => {
                 const { data, error } = await supabase
                     .from('chair_manager_assignment')
                     .select(`
-                    assignment_id,
-                    date,
-                    shift,
-                    status,
-                    section:section_id (
-                        section_name,
-                        room:room_id (
-                            room_name
+                        assignment_id,
+                        date,
+                        shift,
+                        status,
+                        section:section_id (
+                            section_name,
+                            room:room_id (
+                                room_name
+                            )
                         )
-                    )
-                `)
+                    `)
                     .eq('student_id', user.id)
                     .order('date', { ascending: false });
 

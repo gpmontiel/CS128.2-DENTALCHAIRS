@@ -137,56 +137,61 @@ const ManageRequests = () => {
                     shift,
                     req_timestamp,
                     status,
-            
                     student:student_id (
-                        profile_id,
-                        first_name,
-                        last_name,
-                        pfp,
-            
-                        clinician (
-                            clinician_id,
-                            group_id,
-                            student_groups (
-                                group_name
-                            )
+                        clinician_id,
+                        group_id,
+                        student_groups (
+                            group_name
+                        ),
+                        profiles (
+                            profile_id,
+                            first_name,
+                            last_name,
+                            pfp
                         )
                     ),
-            
                     assistant:assistant_id (
-                        profile_id,
-                        first_name,
-                        last_name
+                        profiles (
+                            profile_id,
+                            first_name,
+                            last_name
+                        )
                     )
                 `)
-                .eq("section_id", assignment.section_id)
+                .eq("section_id", Number(assignment.section_id))
                 .eq("date", assignment.date)
                 .eq("shift", assignment.shift)
                 .order("req_timestamp", { ascending: true });
 
             if (error) {
-                console.error("Error fetching students:", error);
+                console.error("Error fetching students Detailed:", error);
                 return;
             }
 
-            console.log("RAW STUDENTS:", data);
+            console.log("RAW STUDENTS SUCCESS:", data);
 
-            const formatted = (data || []).map((item: any) => ({
-                id: item.request_id,
-                student_id: item.student?.profile_id,
+            const formatted = (data || []).map((item: any) => {
+                // Updated mapping to read from '.profiles' instead of '.profiles' as an alias
+                const sProfile = item.student?.profiles;
+                const aProfile = item.assistant?.profiles;
 
-                first_name: item.student?.first_name,
-                last_name: item.student?.last_name,
-                pfp: item.student?.pfp,
+                return {
+                    id: item.request_id,
+                    student_id: sProfile?.profile_id || item.student_id,
 
-                student_group: item.student?.clinician?.student_groups?.group_name || "No Group",
+                    first_name: sProfile?.first_name || "Unknown",
+                    last_name: sProfile?.last_name || "Student",
+                    pfp: sProfile?.pfp,
 
-                assistant_first_name: item.assistant?.first_name,
-                assistant_last_name: item.assistant?.last_name,
+                    student_group: item.student?.student_groups?.group_name || "No Group",
 
-                created_at: item.req_timestamp,
-                status: item.status
-            }));
+                    assistant_first_name: aProfile?.first_name,
+                    assistant_last_name: aProfile?.last_name,
+
+                    created_at: item.req_timestamp,
+                    status: item.status
+                };
+            });
 
             setRequestList(formatted);
         };
