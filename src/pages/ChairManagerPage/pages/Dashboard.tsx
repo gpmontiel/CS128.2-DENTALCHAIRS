@@ -434,8 +434,11 @@ const Dashboard : React.FC = () => {
     };
 
     return (
-        <Box fontFamily="Inter">
-            <Typography variant="h4" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2, mx: 3 }}>
+        <Box
+            fontFamily="Inter"
+            sx={{ backgroundColor: '#ffffff', backgroundImage: 'none !important', minHeight: '100vh'}}
+        >
+            <Typography variant="h4" color="#493979" fontWeight="700" fontFamily="Poppins" sx={{ my: 2, mx: 3, fontFamily: 'Poppins, sans-serif !important' }}>
                 Dashboard
             </Typography>
 
@@ -960,29 +963,32 @@ const Dashboard : React.FC = () => {
                                                     borderRadius: '4px'
                                                 }}
                                             />
-                                            <Button
-                                                size="small"
-                                                variant="text"
-                                                sx={{
-                                                    textTransform: 'none',
-                                                    color: '#493979',
-                                                    fontWeight: 600,
-                                                    fontSize: 12,
-                                                    p: 0,
-                                                    minWidth: 0
-                                                }}
-                                                onClick={() => {
-                                                    const status = getHistoryStatus(item);
 
-                                                    if (status === "Ongoing") {
-                                                        navigate(`/chair-manager/manage-requests/${item.assignment_id}`);
-                                                    } else {
-                                                        navigate(`/chair-manager/history/${item.assignment_id}`);
-                                                    }
-                                                }}
-                                            >
-                                                View Details
-                                            </Button>
+                                            {(statusLabel === 'Ongoing' || statusLabel === 'Completed') && (
+                                                <Button
+                                                    size="small"
+                                                    variant="text"
+                                                    sx={{
+                                                        textTransform: 'none',
+                                                        color: '#493979',
+                                                        fontWeight: 600,
+                                                        fontSize: 12,
+                                                        p: 0,
+                                                        minWidth: 0
+                                                    }}
+                                                    onClick={() => {
+                                                        const status = getHistoryStatus(item);
+
+                                                        if (status === "Ongoing") {
+                                                            navigate(`/chair-manager/manage-requests/${item.assignment_id}`);
+                                                        } else {
+                                                            navigate(`/chair-manager/history/${item.assignment_id}`);
+                                                        }
+                                                    }}
+                                                >
+                                                    View Details
+                                                </Button>
+                                            )}
                                         </Box>
                                     </Card>
                                 );

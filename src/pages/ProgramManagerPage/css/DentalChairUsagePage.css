@@ -61,7 +61,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 
 .btn-row-download:hover {
@@ -115,7 +115,7 @@
 
 /* ROW SHADING */
 .dent-table tbody tr:nth-child(odd) {
-  background-color: #fdfcff; 
+  background-color: #fdfcff;
 }
 
 .dent-table tbody tr:nth-child(even) {
@@ -204,16 +204,16 @@
 }
 
 /* COLUMN WIDTHS (UNCHANGED) */
-.col-section { 
-  width: 15%; 
+.col-section {
+  width: 15%;
 }
-.col-details-narrow { 
+.col-details-narrow {
   width: 25%;
 }
-.col-count { 
-  width: 15%; 
+.col-count {
+  width: 15%;
 }
-.col-action { 
-  width: 25%; 
-  text-align: center; 
+.col-action {
+  width: 25%;
+  text-align: center;
 }
