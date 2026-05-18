@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
 import AdminHome from "./pages/ClinicalAdminPage/AdminHome.tsx";
-import ManagerHome from "./pages/ProgramManagerPage/ManagerHome.tsx";
+import ManagerHome from "./pages/ProgramManagerPage/pages/ManagerHome.tsx";
 import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
 import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
 import ClinicianProfile from "./pages/ClinicianPage/Profile/Profile.tsx";
@@ -15,6 +15,8 @@ import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
 import RequestHistoryDetails from "./pages/ChairManagerPage/pages/RequestHistoryDetails.tsx";
 import ChairManagerNotificationsPage from "./pages/ChairManagerPage/pages/ChairManagerNotificationsPage.tsx";
 import ClinicianNotificationsPage from './pages/ClinicianPage/Notification/ClinicianNotifications.tsx';
+import ManagerProfile from "./pages/ProgramManagerPage/profile-pages/Profile.tsx";
+import EditProfile from "./pages/ProgramManagerPage/profile-pages/EditProfile";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -43,6 +45,8 @@ function App() {
                     <Route path="/chair-manager-notifications" element={<ChairManagerNotificationsPage />} />
                 </Route>
 
+                <Route path="/program-manager/profile" element={<ManagerProfile />}/>
+                <Route path="/program-manager/profile/edit" element={<EditProfile />}/>
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>

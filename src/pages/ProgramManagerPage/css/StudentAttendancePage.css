@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+/* =========================
+   WRAPPER & CONTAINER
+========================= */
+.attendance-wrapper {
+  height: auto;
+  width: 90%;
+  max-width: 1150px;
+  margin: 5px auto 25px;
+  padding: 10px;
+}
+
+.attendance-container {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow:
+    0 8px 24px rgba(73, 57, 121, 0.12),
+    0 2px 8px rgba(73, 57, 121, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* =========================
+   TOOLBAR
+========================= */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+/* =========================
+   SEARCH BAR
+========================= */
+.search-bar {
+  flex: 3;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50px;
+  background: #fff;
+  height: 50px;
+  padding: 0 16px;
+  box-shadow: 0 2px 6px rgba(73, 57, 121, 0.06);
+  transition: all 0.2s ease;
+  gap: 10px;
+}
+
+.search-bar:focus-within {
+  border-color: #493979;
+  box-shadow: 0 8px 18px rgba(73, 57, 121, 0.12);
+}
+
+.input-field {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+.search-icon {
+  color: #94a3b8;
+}
+
+.btn-clear {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+/* =========================
+   DROPDOWN
+========================= */
+.dropdown {
+  flex: 1.2;
+  position: relative; /* Critical for absolute positioning of the list */
+  min-width: 180px;
+}
+
+.dropdown-trigger {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #334155;
+  box-shadow: 0 2px 6px rgba(73, 57, 121, 0.06);
+  transition: all 0.2s ease;
+}
+
+.dropdown-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(73, 57, 121, 0.12);
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+  font-size: 12px;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* THE FIX: Absolute position floats the list above content */
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 8px); 
+  left: 0;
+  width: 100%;
+  background: #ffffff; /* Ensures background is visible */
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 40px rgba(73, 57, 121, 0.18);
+  z-index: 1000; /* Higher than any other UI element */
+  overflow: hidden;
+  animation: fadeIn 0.15s ease-out;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 13px;
+}
+
+.dropdown-item {
+  padding: 20px px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* HOVER EFFECT */
+.dropdown-item:hover {
+  color: #594596 !important;
+  font-weight: 500;
+  transform: translateX(2px);
+}
+
+.dropdown-item.active {
+  color: #594596 !important;
+  font-weight: 750;
+}
+
+.dropdown-item:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================
+   EXPORT BUTTON (GROUP)
+========================= */
+.btn-export-group {
+  flex: 1;
+  background-color: #9268bc;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  height: 50px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-export-group:hover {
+  background-color: #ac7fdf;
+  transform: translateY(-2px);
+}
+
+/* =========================
+   STUDENT GRID
+========================= */
+.student-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  padding: 10px 5px;
+}
+
+/* =========================
+   STUDENT CARD (CENTERED LAYOUT + GLOW)
+========================= */
+.student-card {
+  background: #ffffff;
+  border: 1.2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;  
+  align-items: center;     
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  box-shadow:
+    0 4px 10px rgba(73, 57, 121, 0.06),
+    0 0 0 rgba(146, 104, 188, 0);
+  transition: all 0.3s ease;
+}
+
+.student-card:hover {
+  transform: translateY(-4px);
+  border-color: #c4b5fd;
+  box-shadow:
+    0 10px 22px rgba(73, 57, 121, 0.15),
+    0 0 18px rgba(146, 104, 188, 0.25);
+}
+
+/* PROFILE PIC */
+.student-pfp {
+  width: 80px;   /* slightly bigger for centered design */
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e9d5ff;
+}
+
+/* INFO */
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.student-info h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.student-number {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.no-student-content{
+  grid-column: 1 / -1;  
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px; /* gives proper vertical centering feel */
+}
+
+/* GROUP BADGE */
+.group-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+  gap: 5px;
+}
+
+/* =========================
+   CARD FOOTER (EXPORT AREA)
+========================= */
+.student-footer {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* INDIVIDUAL EXPORT BUTTON (MATCH GROUP STYLE) */
+.export-individual-btn {
+  width: 100%;
+  background-color: #9268bc;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  height: 36px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 5px;
+}
+
+.export-individual-btn:hover {
+  background-color: #ac7fdf;
+  transform: translateY(-2px);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar,
+  .dropdown,
+  .btn-export-group {
+    width: 100%;
+    flex: none;
+  }
+}

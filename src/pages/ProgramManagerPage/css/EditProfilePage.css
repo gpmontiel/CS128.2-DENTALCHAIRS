@@ -1,0 +1,149 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+.edit-profile-page{
+    width:100%;
+    min-height:100vh;
+    background-color:#f5f5f7;
+    display:flex;
+    flex-direction:column;
+    box-sizing:border-box;
+    font-family:'Inter', sans-serif;
+}
+
+.edit-profile-container{
+    width:100%;
+    max-width:750px;
+    margin:40px auto;
+    background:#ffffff;
+    border-radius:16px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.08);
+    padding:24px;
+    box-sizing:border-box;
+    font-family:'Inter', sans-serif;
+}
+
+@media (max-width:768px){
+    .edit-profile-container{
+        width:calc(100% - 24px);
+        margin:20px auto;
+        padding:18px;
+        border-radius:14px;
+    }
+}
+
+.edit-profile-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    margin-bottom:20px;
+    font-family:'Inter', sans-serif;
+}
+
+.edit-profile-header h2{
+    font-family:'Inter', sans-serif;
+    font-size:22px;
+    font-weight:600;
+    color:#382d5f;
+    margin:0;
+}
+
+.edit-profile-back-btn{
+    position:absolute;
+    left:0;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:#382d5f !important;
+    font-family:'Inter', sans-serif;
+}
+
+.edit-profile-image-wrapper{
+    display:flex;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+.edit-profile-image{
+    width:130px;
+    height:130px;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid #382d5f;
+}
+
+.edit-profile-form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    font-family:'Inter', sans-serif;
+}
+
+/* MUI INPUT OVERRIDES */
+.edit-profile-form .MuiTextField-root,
+.edit-profile-form .MuiFormControl-root{
+    background:#f9fafb;
+    border-radius:10px;
+    font-family:'Inter', sans-serif;
+}
+
+/* Ensure ALL MUI text uses Inter */
+.edit-profile-form input,
+.edit-profile-form textarea,
+.edit-profile-form select,
+.MuiInputBase-root,
+.MuiTypography-root,
+.MuiFormLabel-root,
+.MuiMenuItem-root {
+    font-family:'Inter', sans-serif !important;
+}
+
+/* Save button */
+.edit-profile-save-btn{
+    margin-top:10px;
+    background-color:#382d5f !important;
+    color:white !important;
+    padding:10px;
+    font-weight:600;
+    border-radius:10px;
+    text-transform:none;
+    font-family:'Inter', sans-serif !important;
+}
+
+.edit-profile-save-btn:hover{
+    background-color:#2d234d !important;
+}
+
+/* Loading text */
+.edit-profile-loading{
+    text-align:center;
+    padding-top:40px;
+    font-family:'Inter', sans-serif;
+    color:#6b7280;
+}
+
+/* MUI focus states */
+.edit-profile-form .MuiInputLabel-root.Mui-focused{
+    color:#382d5f !important;
+    font-family:'Inter', sans-serif;
+}
+
+.edit-profile-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline{
+    border-color:#382d5f !important;
+}
+
+.edit-profile-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline{
+    border-color:#382d5f !important;
+    border-width:2px;
+}
+
+/* MUI dropdown selection */
+.MuiMenuItem-root.Mui-selected{
+    background-color:rgba(56,45,95,0.08) !important;
+    font-family:'Inter', sans-serif !important;
+}
+
+.MuiMenuItem-root.Mui-selected:hover{
+    background-color:rgba(56,45,95,0.14) !important;
+}
