@@ -49,13 +49,16 @@ const pages: Page[] = [
 
 const ResponsiveAppBar: React.FC = () => {
     const navigate = useNavigate();
-    const [pfpUrl, setPfpUrl] = useState<string>("");
-
+    const [pfpUrl, setPfpUrl] = useState<string>(() => {
+        return localStorage.getItem('userPfp') || '';
+    });
     const [openDrawer, setOpenDrawer] = React.useState(false);
-
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
-    const [profile, setProfile] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(() => {
+        const cached = localStorage.getItem('userProfile');
+        return cached ? JSON.parse(cached) : null;
+    });
     
     useEffect(() => {
             const fetchProfile = async () => {
@@ -77,14 +80,30 @@ const ResponsiveAppBar: React.FC = () => {
     
                 if (error) {
                     console.error(error);
-                } else {
+                } else if (data) {
                     console.log("Fetched Data:", data); 
-                    setProfile(data || []);
-                    setPfpUrl(data?.pfp || "");
+                    setProfile(data);
+                    const newPfpUrl = data?.pfp || "";
+                    setPfpUrl(newPfpUrl);
+                    
+                    localStorage.setItem('userProfile', JSON.stringify(data));
+                    localStorage.setItem('userPfp', newPfpUrl);
                 }
             }
     
             fetchProfile();
+
+            const handleProfileUpdate = (event: CustomEvent) => {
+                const { profile: updatedProfile, pfpUrl: updatedPfp } = event.detail;
+                if (updatedProfile) setProfile(updatedProfile);
+                if (updatedPfp) setPfpUrl(updatedPfp);
+            };
+
+            window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+        
+            return () => {
+                window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+            };
         }, []);
 
     const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -104,6 +123,17 @@ const ResponsiveAppBar: React.FC = () => {
         }
 
         navigate("/");
+    };
+
+    const updateProfile = (newProfile: any, newPfpUrl: string) => {
+        setProfile(newProfile);
+        setPfpUrl(newPfpUrl);
+        localStorage.setItem('userProfile', JSON.stringify(newProfile));
+        localStorage.setItem('userPfp', newPfpUrl);
+        
+        window.dispatchEvent(new CustomEvent('profileUpdated', {
+            detail: { profile: newProfile, pfpUrl: newPfpUrl }
+        }));
     };
 
     const [notifAnchor, setNotifAnchor] = React.useState<null | HTMLElement>(null);
@@ -254,7 +284,8 @@ const ResponsiveAppBar: React.FC = () => {
                                         }}
                                         src={pfpUrl || undefined} 
                                     >
-                                        {!pfpUrl && (profile?.first_name?.charAt(0) || "U")}
+                                        {!pfpUrl && profile?.first_name?.charAt(0)}
+                                        {!pfpUrl && !profile && "U"}
                                     </Avatar>
 
                                     <Typography sx={{ fontWeight: 600, mb: 2, textAlign: "center" }}>
@@ -419,11 +450,11 @@ const ResponsiveAppBar: React.FC = () => {
                                 paper: {
                                     sx: {
                                         width: 320,
-                                        borderRadius: 3, // Slightly rounder for a modern look
+                                        borderRadius: 3, 
                                         mt: 1.5,
                                         boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15), 0px 2px 8px rgba(0, 0, 0, 0.05)',
                                         overflow: 'visible',
-                                        '&::before': { // Arrow pointing to the icon
+                                        '&::before': { 
                                             content: '""',
                                             display: 'block',
                                             position: 'absolute',

@@ -225,7 +225,7 @@ const Schedule = () => {
         const assistantProfile = await findAssistantProfile(firstName.trim(), lastName.trim());
 
         if (!assistantProfile) {
-            setSnackbarMessage("The name you entered is not in the clinician list");
+            setSnackbarMessage("The name you entered is not in the clinician list.");
             setSnackbarSeverity("error");
             setSnackbarOpen(true);
             return;
@@ -277,14 +277,14 @@ const Schedule = () => {
         const assistantProfile = await findAssistantProfile(firstName.trim(), lastName.trim());
 
         if (!assistantProfile) {
-            setSnackbarMessage("The name you entered is not in the clinician list");
+            setSnackbarMessage("The name you entered is not in the clinician list.");
             setSnackbarSeverity("error");
             setSnackbarOpen(true);
             return;
         }
 
         if (currentAssistant && assistantProfile.profile_id === currentAssistant.profile_id) {
-            setSnackbarMessage("This is your current assistant");
+            setSnackbarMessage("This is your current assistant.");
             setSnackbarSeverity("info");
             setSnackbarOpen(true);
             return;
