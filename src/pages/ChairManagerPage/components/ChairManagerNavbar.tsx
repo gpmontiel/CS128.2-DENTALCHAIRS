@@ -50,11 +50,29 @@ const ResponsiveAppBar: React.FC = () => {
         setAnchorEl(null);
     };
 
-    const [firstName, setFirstName] = React.useState<string>("User");
-    const [lastName, setLastName] = React.useState<string>("User");
-    const [userInitial, setUserInitial] = React.useState<string>("U");
-    const [userRole, setUserRole] = React.useState<string>("");
-    const [pfpUrl, setPfpUrl] = React.useState<string>("");
+    const [firstName, setFirstName] = React.useState<string>(() => {
+        const cached = localStorage.getItem('chairUserFirstName');
+        return cached || "User";
+    });
+    const [lastName, setLastName] = React.useState<string>(() => {
+        const cached = localStorage.getItem('chairUserLastName');
+        return cached || "User";
+    });
+    const [userInitial, setUserInitial] = React.useState<string>(() => {
+        const cached = localStorage.getItem('chairUserInitial');
+        return cached || "U";
+    });
+    const [userRole, setUserRole] = React.useState<string>(() => {
+        const cached = localStorage.getItem('chairUserRole');
+        return cached || "";
+    });
+    const [pfpUrl, setPfpUrl] = React.useState<string>(() => {
+        return localStorage.getItem('chairUserPfp') || '';
+    });
+    const [profile, setProfile] = React.useState<any>(() => {
+        const cached = localStorage.getItem('chairUserProfile');
+        return cached ? JSON.parse(cached) : null;
+    });
 
     React.useEffect(() => {
         const fetchUserProfile = async () => {
@@ -76,14 +94,22 @@ const ResponsiveAppBar: React.FC = () => {
                     }
 
                     if (profile) {
-                        const firstName = profile.first_name || user.email?.split('@')[0] || "User";
-                        const lastName = profile.last_name || "";
-                        setFirstName(firstName);
-                        setLastName(lastName);
-                        setPfpUrl(profile.pfp || "");
+                        const firstNameValue = profile.first_name || user.email?.split('@')[0] || "User";
+                        const lastNameValue = profile.last_name || "";
+                        const initialValue = firstNameValue.charAt(0).toUpperCase();
+                        const pfpValue = profile.pfp || "";
 
-                        setUserInitial(firstName.charAt(0).toUpperCase());
-                        setPfpUrl(profile.pfp || "");
+                        setFirstName(firstNameValue);
+                        setLastName(lastNameValue);
+                        setUserInitial(initialValue);
+                        setPfpUrl(pfpValue);
+                        setProfile(profile);
+
+                        localStorage.setItem('chairUserFirstName', firstNameValue);
+                        localStorage.setItem('chairUserLastName', lastNameValue);
+                        localStorage.setItem('chairUserInitial', initialValue);
+                        localStorage.setItem('chairUserPfp', pfpValue);
+                        localStorage.setItem('chairUserProfile', JSON.stringify(profile));
 
                         if (profile.role_id) {
                             const { data: role, error: roleError } = await supabase
@@ -95,11 +121,14 @@ const ResponsiveAppBar: React.FC = () => {
                             if (roleError) {
                                 console.log("Error fetching role:", roleError);
                                 setUserRole("");
+                                localStorage.setItem('chairUserRole', "");
                             } else {
                                 setUserRole(role.role || "");
+                                localStorage.setItem('chairUserRole', role.role || "");
                             }
                         } else {
                             setUserRole("");
+                            localStorage.setItem('chairUserRole', "");
                         }
                     }
                 }
@@ -109,6 +138,38 @@ const ResponsiveAppBar: React.FC = () => {
         };
 
         fetchUserProfile();
+
+        const handleProfileUpdate = (event: CustomEvent) => {
+            const { profile: updatedProfile, pfpUrl: updatedPfp, firstName: updatedFirstName, lastName: updatedLastName, userRole: updatedUserRole } = event.detail;
+            if (updatedProfile) {
+                setProfile(updatedProfile);
+                localStorage.setItem('chairUserProfile', JSON.stringify(updatedProfile));
+            }
+            if (updatedPfp) {
+                setPfpUrl(updatedPfp);
+                localStorage.setItem('chairUserPfp', updatedPfp);
+            }
+            if (updatedFirstName) {
+                setFirstName(updatedFirstName);
+                localStorage.setItem('chairUserFirstName', updatedFirstName);
+                setUserInitial(updatedFirstName.charAt(0).toUpperCase());
+                localStorage.setItem('chairUserInitial', updatedFirstName.charAt(0).toUpperCase());
+            }
+            if (updatedLastName) {
+                setLastName(updatedLastName);
+                localStorage.setItem('chairUserLastName', updatedLastName);
+            }
+            if (updatedUserRole) {
+                setUserRole(updatedUserRole);
+                localStorage.setItem('chairUserRole', updatedUserRole);
+            }
+        };
+
+        window.addEventListener('chairProfileUpdated', handleProfileUpdate as EventListener);
+        
+        return () => {
+            window.removeEventListener('chairProfileUpdated', handleProfileUpdate as EventListener);
+        };
     }, []);
 
     const handleProfile = async () => {
@@ -129,12 +190,54 @@ const ResponsiveAppBar: React.FC = () => {
             return;
         }
 
+        localStorage.removeItem('chairUserFirstName');
+        localStorage.removeItem('chairUserLastName');
+        localStorage.removeItem('chairUserInitial');
+        localStorage.removeItem('chairUserPfp');
+        localStorage.removeItem('chairUserProfile');
+        localStorage.removeItem('chairUserRole');
+
         navigate("/");
     };
 
     const handleMobileNavigate = (path: string) => {
         navigate(path);
-        setOpenDrawer(false); // This closes the drawer
+        setOpenDrawer(false); 
+    };
+
+    const updateProfile = (newProfile: any, newPfpUrl: string, newFirstName?: string, newLastName?: string, newUserRole?: string) => {
+        if (newProfile) {
+            setProfile(newProfile);
+            localStorage.setItem('chairUserProfile', JSON.stringify(newProfile));
+        }
+        if (newPfpUrl) {
+            setPfpUrl(newPfpUrl);
+            localStorage.setItem('chairUserPfp', newPfpUrl);
+        }
+        if (newFirstName) {
+            setFirstName(newFirstName);
+            localStorage.setItem('chairUserFirstName', newFirstName);
+            setUserInitial(newFirstName.charAt(0).toUpperCase());
+            localStorage.setItem('chairUserInitial', newFirstName.charAt(0).toUpperCase());
+        }
+        if (newLastName) {
+            setLastName(newLastName);
+            localStorage.setItem('chairUserLastName', newLastName);
+        }
+        if (newUserRole) {
+            setUserRole(newUserRole);
+            localStorage.setItem('chairUserRole', newUserRole);
+        }
+        
+        window.dispatchEvent(new CustomEvent('chairProfileUpdated', {
+            detail: { 
+                profile: newProfile, 
+                pfpUrl: newPfpUrl,
+                firstName: newFirstName,
+                lastName: newLastName,
+                userRole: newUserRole
+            }
+        }));
     };
 
     const [notifAnchor, setNotifAnchor] = React.useState<null | HTMLElement>(null);
@@ -150,6 +253,7 @@ const ResponsiveAppBar: React.FC = () => {
 
     const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
     const unreadCount = notifications.filter(n => !n.is_read).length;
+    
     React.useEffect(() => {
         const fetchNotifications = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -442,11 +546,11 @@ const ResponsiveAppBar: React.FC = () => {
                                 paper: {
                                     sx: {
                                         width: 320,
-                                        borderRadius: 3, // Slightly rounder for a modern look
+                                        borderRadius: 3, 
                                         mt: 1.5,
                                         boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15), 0px 2px 8px rgba(0, 0, 0, 0.05)',
                                         overflow: 'visible',
-                                        '&::before': { // Arrow pointing to the icon
+                                        '&::before': { 
                                             content: '""',
                                             display: 'block',
                                             position: 'absolute',
