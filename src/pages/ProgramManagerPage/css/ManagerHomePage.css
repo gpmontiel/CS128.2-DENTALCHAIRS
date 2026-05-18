@@ -1,19 +1,20 @@
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  min-height: 100vh;
+.manager-program-page {
   position: relative;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
-body::before {
+.manager-program-page::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
+
   background-image: url("https://affinitydentalclinics.com/wp-content/uploads/Affinity-Dental-Paranaque-Treatment-Room-scaled.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: rgba(255, 255, 255, 0.5); 
-  background-blend-mode: overlay; 
+
+  background-color: rgba(255, 255, 255, 0.5);
+  background-blend-mode: overlay;
 }
