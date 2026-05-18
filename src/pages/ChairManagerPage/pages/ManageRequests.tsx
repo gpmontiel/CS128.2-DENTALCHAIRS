@@ -126,6 +126,7 @@ const ManageRequests = () => {
                 return;
             }
 
+            // Changed 'profiles:profile_id' to point directly to 'profiles'
             const { data, error } = await supabase
                 .from("dental_chairs_request_assignment")
                 .select(`

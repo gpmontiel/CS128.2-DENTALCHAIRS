@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
-import AdminHome from "./pages/ClinicalAdminPage/AdminHome.tsx";
 import ManagerHome from "./pages/ProgramManagerPage/pages/ManagerHome.tsx";
 import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
 import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
@@ -17,6 +16,10 @@ import ChairManagerNotificationsPage from "./pages/ChairManagerPage/pages/ChairM
 import ClinicianNotificationsPage from './pages/ClinicianPage/Notification/ClinicianNotifications.tsx';
 import ManagerProfile from "./pages/ProgramManagerPage/profile-pages/Profile.tsx";
 import EditProfile from "./pages/ProgramManagerPage/profile-pages/EditProfile";
+import ClinicalAdminLayout from "./pages/ClinicalAdminPage/layouts/ClinicalAdminLayout.tsx";
+import ClinicalAdminStudents from "./pages/ClinicalAdminPage/Students/Students.tsx";
+import ClinicalAdminRequests from "./pages/ClinicalAdminPage/Requests/Requests.tsx";
+import ClinicalAdminAttendance from "./pages/ClinicalAdminPage/Attendance/Attendance.tsx";
 
 function App() {
     const [user, setUser] = useState<any>(null);
@@ -25,7 +28,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage onLoginSuccess={(userData) => setUser(userData)} />} />
-                <Route path="/admin" element={user?.role_id === 1 ? <AdminHome /> : <Navigate to="/" />} />
+                {/*<Route path="/admin" element={user?.role_id === 1 ? <ClinicalAdminHome /> : <Navigate to="/" />} />*/}
                 <Route path="/manager" element={user?.role_id === 2 ? <ManagerHome /> : <Navigate to="/" />} />
                 {/*<Route path="/clinician" element={user?.role_id === 3 ? <ClinicianSchedule /> : <Navigate to="/" />}/>*/}
                 <Route path="/clinician" element={<ClinicianSchedule />} />
@@ -43,6 +46,12 @@ function App() {
                     <Route path="/chair-manager/history" element={<RequestHistory />}/>
                     <Route path="/chair-manager/history/:assignmentId" element={<RequestHistoryDetails />}/>
                     <Route path="/chair-manager-notifications" element={<ChairManagerNotificationsPage />} />
+                </Route>
+
+                <Route element={<ClinicalAdminLayout />}>
+                    <Route path="/clinicalAdminStudents" element={<ClinicalAdminStudents />} />
+                    <Route path="/clinicalAdminRequests" element={<ClinicalAdminRequests />} />
+                    <Route path="/clinicalAdminAttendance" element={<ClinicalAdminAttendance />} />
                 </Route>
 
                 <Route path="/program-manager/profile" element={<ManagerProfile />}/>
