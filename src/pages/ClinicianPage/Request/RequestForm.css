@@ -199,6 +199,7 @@
 
 .confirm-btn:hover, .submit-btn:hover {
     background-color: #2d2449;
+    transition: "all 0.2s ease",
 }
 
 .confirm-btn:disabled {

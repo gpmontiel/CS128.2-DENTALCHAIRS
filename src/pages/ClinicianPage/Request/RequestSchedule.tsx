@@ -22,6 +22,7 @@ const RequestSchedule = () => {
     const navigate = useNavigate();
     const [schedFilter, setSchedFilter] = useState("Pending");
     const [schedules, setSchedules] = useState<Schedule[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSchedules = async () => {
@@ -37,7 +38,6 @@ const RequestSchedule = () => {
             const { data, error } = await supabase
                 .from('dental_chairs_request_assignment')
                 .select(`
-                    assignment_id,
                     date,
                     shift,
                     status,
@@ -60,6 +60,8 @@ const RequestSchedule = () => {
                 console.log("Fetched Data:", data); 
                 setSchedules(data || []);
             }
+
+            setLoading(false); 
         };
 
         fetchSchedules();
@@ -68,6 +70,17 @@ const RequestSchedule = () => {
     const filteredSchedules = schedules.filter(
         (item) => item.status === schedFilter
     );
+
+    if (loading) {
+        return (
+            <div>
+                <Navbar />
+                <div style={{ paddingTop: "20px", textAlign: "center" }}>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="request-sched-container"> 
@@ -94,6 +107,35 @@ const RequestSchedule = () => {
 
             {/* DISPLAY SCHEDULES */}
             {schedFilter === "Pending" && filteredSchedules.map((item) => {
+                const dateObj = new Date(item.date);
+
+                return (
+                    <div key={item.assignment_id} className="sched-display-container">
+                        <div className="date-container">
+                            <p style={{ fontSize: "38px", fontWeight: 600, fontFamily: "Poppins, sans-serif" }}>
+                                {dateObj.getDate()}
+                            </p>
+                            <p style={{ fontSize: "20px", fontFamily: "Poppins, sans-serif" }}>
+                                {dateObj.toLocaleString("default", { month: "short" })}
+                            </p>
+                            <p className="shift-display" style={{ fontFamily: "Poppins, sans-serif" }}>
+                                {item.shift}
+                            </p>
+                        </div>
+                        
+                        <div className="room-section-display-container">
+                            <p style={{ fontSize: "25px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
+                                {item.sections?.rooms?.room_name || "No Room"}
+                            </p>
+                            <p style={{ fontSize: "18px", fontFamily: "Poppins, sans-serif" }}>
+                                Section: {item.sections?.section_name || "No Section"}
+                            </p>
+                        </div>
+                    </div>
+                );
+            })}
+
+            {schedFilter === "Rejected" && filteredSchedules.map((item) => {
                 const dateObj = new Date(item.date);
 
                 return (

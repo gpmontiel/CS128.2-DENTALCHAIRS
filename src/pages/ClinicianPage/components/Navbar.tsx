@@ -15,13 +15,15 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-light.png";
-import EditIcon from '@mui/icons-material/Edit';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import {Badge, Divider, ListItemIcon, Menu, MenuItem} from "@mui/material";
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { useState, useEffect } from "react"
+import { supabase } from "../../../utils/supabase.ts";
 
 interface Page {
     name: string;
@@ -36,11 +38,43 @@ const pages: Page[] = [
 
 const ResponsiveAppBar: React.FC = () => {
     const navigate = useNavigate();
+    const [pfpUrl, setPfpUrl] = useState<string>("");
 
     const [openDrawer, setOpenDrawer] = React.useState(false);
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
+    const [profile, setProfile] = useState<any>(null);
+    
+    useEffect(() => {
+            const fetchProfile = async () => {
+                const { data: userData } = await supabase.auth.getUser();
+                const userId = userData.user?.id;
+    
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select(`
+                    first_name,
+                    last_name,
+                    pfp
+                    `)
+                    .eq("profile_id", userId)
+                    .single();
+    
+                console.log("Fetched Data:", data);
+                console.log("Error:", error);
+    
+                if (error) {
+                    console.error(error);
+                } else {
+                    console.log("Fetched Data:", data); 
+                    setProfile(data || []);
+                    setPfpUrl(data?.pfp || "");
+                }
+            }
+    
+            fetchProfile();
+        }, []);
 
     const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -48,6 +82,17 @@ const ResponsiveAppBar: React.FC = () => {
 
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error("Logout error:", error.message);
+            return;
+        }
+
+        navigate("/");
     };
 
     return (
@@ -94,20 +139,21 @@ const ResponsiveAppBar: React.FC = () => {
                                             backgroundColor: "#6b4e9e",
                                             fontSize: "2rem"
                                         }}
+                                        src={pfpUrl || undefined} 
                                     >
-                                        U
+                                        {!pfpUrl && (profile?.first_name?.charAt(0) || "U")}
                                     </Avatar>
 
                                     <Typography sx={{ fontWeight: 600, mb: 2, textAlign: "center" }}>
-                                        Hello, User!
+                                        Hello, {profile?.first_name}!
                                     </Typography>
 
                                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, justifyItems: "center" }}>
                                         <Button
                                             variant="outlined"
                                             size="small"
-                                            disableElevation
-                                            onClick={() => {/* handle edit profile */}}
+                                            disableElevation 
+                                            onClick={() => navigate("/profile", { state: { fromChairManager: false } })}
                                             sx={{
                                                 color: "white",
                                                 borderColor: "rgba(255, 255, 255, 0.8)",
@@ -115,9 +161,9 @@ const ResponsiveAppBar: React.FC = () => {
                                                 textTransform: "none",
                                                 py: 1
                                             }}
-                                            startIcon={<EditIcon fontSize="small" />}
+                                            startIcon={<PersonIcon fontSize="small" />}
                                         >
-                                            Edit Profile
+                                            Profile
                                         </Button>
                                         <Button
                                             variant="contained"
@@ -163,7 +209,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        onClick={() => {/* handle logout */}}
+                                        onClick={handleLogout}
                                         sx={{
                                             backgroundColor: "rgba(255, 255, 255, 0.2)",
                                             borderRadius: 4,
@@ -257,8 +303,8 @@ const ResponsiveAppBar: React.FC = () => {
                             onClick={handleAvatarClick}
                             sx={{ p: 0, display: { xs: 'none', md: 'inline-flex' } }}
                         >
-                            <Avatar sx={{ width: 32, height: 32 }}>
-                                K
+                            <Avatar sx={{ width: 32, height: 32 }}  src={pfpUrl || undefined}>
+                                {!pfpUrl && (profile?.first_name?.charAt(0) || "U")}
                             </Avatar>
                         </IconButton>
 
@@ -317,7 +363,7 @@ const ResponsiveAppBar: React.FC = () => {
                             {/* User info header */}
                             <Box sx={{ px: 2, py: 1 }}>
                                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                    KANG SEULGI
+                                    {profile?.last_name}, {profile?.first_name} 
                                 </Typography>
                                 <Typography variant="caption" color="#493979" sx={{ mt: 0.5, display: 'block', fontWeight: 500 }}>
                                     Clinician
@@ -335,18 +381,19 @@ const ResponsiveAppBar: React.FC = () => {
                                 </Typography>
                             </MenuItem>
 
-                            <MenuItem onClick={handleClose}>
+                            <MenuItem 
+                                onClick={() => {navigate("/profile", { state: { fromChairManager: false } })}}>
                                 <ListItemIcon>
-                                    <EditIcon fontSize="small" sx={{ color: '#4c438e' }} />
+                                    <PersonIcon fontSize="small" sx={{ color: '#4c438e' }} />
                                 </ListItemIcon>
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                    Edit Profile
+                                    Profile
                                 </Typography>
                             </MenuItem>
 
                             <Divider sx={{ my: 0.5 }} />
 
-                            <MenuItem onClick={handleClose}>
+                            <MenuItem onClick={handleLogout}>
                                 <ListItemIcon>
                                     <LogoutIcon fontSize="small" sx={{ color: 'error.main'}} />
                                 </ListItemIcon>
