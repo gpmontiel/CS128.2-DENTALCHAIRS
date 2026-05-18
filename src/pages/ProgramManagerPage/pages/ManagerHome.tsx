@@ -12,7 +12,7 @@ const ManagerHome: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabValue>("attendance");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="manager-program-page bg-gray-50">
       <ResponsiveAppBar />
 
       <TabPills

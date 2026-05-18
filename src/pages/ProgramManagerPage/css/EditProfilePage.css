@@ -88,17 +88,6 @@
     font-family:'Inter', sans-serif;
 }
 
-/* Ensure ALL MUI text uses Inter */
-/*.edit-profile-form input,*/
-/*.edit-profile-form textarea,*/
-/*.edit-profile-form select,*/
-/*.MuiInputBase-root,*/
-/*.MuiTypography-root,*/
-/*.MuiFormLabel-root,*/
-/*.MuiMenuItem-root {*/
-/*    font-family:'Inter', sans-serif !important;*/
-/*}*/
-
 /* Save button */
 .edit-profile-save-btn{
     margin-top:10px;
