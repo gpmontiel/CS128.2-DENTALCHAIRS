@@ -5,7 +5,6 @@ import AdminNavbar from "../../ClinicalAdminPage/components/AdminNavbar.tsx";
 
 import StudentAttendanceView from "./StudentAttendanceView";
 import DentalChairUsageView from "./DentalChairUsageView";
-import DashboardOverview from "../../ClinicalAdminPage/Attendance/DashboardOverview.tsx";
 
 import TabPills from "../components/TabPills";
 import { TABS, type TabValue } from "../config/tabs";
@@ -24,9 +23,6 @@ const ManagerHome: React.FC = () => {
             ) : (
                 <ResponsiveAppBar />
             )}
-
-            {/* --- RENDER EXCLUSIVELY FOR PROGRAM MANAGER VIEW --- */}
-            {!isAdminView && <DashboardOverview />}
 
             <TabPills
                 tabs={TABS}
