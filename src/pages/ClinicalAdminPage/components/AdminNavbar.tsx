@@ -25,6 +25,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import ThreePIcon from '@mui/icons-material/ThreeP';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import {supabase} from "../../../utils/supabase.ts";
 
 interface Page {
     name: string;
@@ -54,6 +55,17 @@ const ResponsiveAppBar: React.FC = () => {
 
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error("Logout error:", error.message);
+            return;
+        }
+
+        navigate("/");
     };
 
     return (
@@ -162,7 +174,7 @@ const ResponsiveAppBar: React.FC = () => {
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        onClick={() => {/* handle logout */}}
+                                        onClick={() => handleLogout()}
                                         sx={{
                                             backgroundColor: "rgba(255, 255, 255, 0.2)",
                                             borderRadius: 4,
@@ -327,7 +339,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                             <Divider sx={{ my: 0.5 }} />
 
-                            <MenuItem onClick={handleClose}>
+                            <MenuItem onClick={handleLogout}>
                                 <ListItemIcon>
                                     <LogoutIcon fontSize="small" sx={{ color: 'error.main'}} />
                                 </ListItemIcon>

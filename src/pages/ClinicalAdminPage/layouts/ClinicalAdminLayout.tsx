@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/AdminNavbar.tsx";
 
 const ClinicalAdminLayout = () => {
     return (
