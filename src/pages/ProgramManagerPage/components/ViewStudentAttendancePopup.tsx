@@ -7,7 +7,7 @@ import "../css/ViewStudentAttendancePopup.css";
 import { fetchStudentAttendanceService } from "../services/fetchStudentAttendanceService";
 import type { AttendanceServiceRow } from "../services/fetchStudentAttendanceService";
 
-import { exportAttendancePDF } from "../services/exportAttendancePDF";
+import { exportAttendancePDF } from "../services/exportServices/exportAttendancePDF";
 
 type Props = {
   isOpen: boolean;
