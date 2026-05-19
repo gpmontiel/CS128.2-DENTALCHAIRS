@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import logoImage from "../../asset/DentrackPDFLogo.png";
+import logoImage from "../../asset/DentrackPdfLogo.png";
 import { drawPDFCommonFooter } from "../exportUtilsAndComponents/pdfFooter";
 import {
   formatPDFDate,
