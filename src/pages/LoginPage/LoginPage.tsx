@@ -47,7 +47,7 @@ const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
 
         onLoginSuccess(profile);
 
-        if (profile.role_id === 1) navigate("/admin");
+        if (profile.role_id === 1) navigate("/clinicalAdminStudents");
         else if (profile.role_id === 2) navigate("/manager");
         else if (profile.role_id === 3) navigate("/clinician");
         else alert("Unknown role");
