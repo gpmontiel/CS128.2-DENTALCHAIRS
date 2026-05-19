@@ -15,7 +15,7 @@ interface ExportModalProps {
   }) => void;
 }
 
-const ExportModal: React.FC<ExportModalProps> = ({
+const StudentExportModal: React.FC<ExportModalProps> = ({
   isOpen,
   onClose,
   onExport,
@@ -191,4 +191,4 @@ const ExportModal: React.FC<ExportModalProps> = ({
   );
 };
 
-export default ExportModal;
+export default StudentExportModal;

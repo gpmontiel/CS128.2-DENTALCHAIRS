@@ -188,7 +188,7 @@ export const exportAttendancePDF = ({
 
   const prettyFilter =
     filterType.charAt(0).toUpperCase() +
-    filterType.slice(1);
+    filterType.slice(1).toLowerCase();
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, "normal");
@@ -288,9 +288,6 @@ export const exportAttendancePDF = ({
           const isLastCol = data.column.index === 7;
 
           if (isLastCol) {
-            data.cell.styles.fillColor = [
-              229, 169, 242,
-            ];
             data.cell.styles.fontStyle = "bold";
           } else {
             data.cell.styles.fontStyle = "normal";
@@ -327,10 +324,25 @@ export const exportAttendancePDF = ({
   }
 
   // -----------------------------
-  // FOOTER
+  // FOOTER & DOWNLOAD
   // -----------------------------
   drawPDFCommonFooter({ doc });
 
-  const blob = doc.output("blob");
-  window.open(URL.createObjectURL(blob));
+  // Direct split formatting to obtain LastName_FirstName
+  const nameSegment = (() => {
+    if (!studentName?.trim()) return "Student";
+
+    const nameParts = studentName.trim().split(/\s+/);
+
+    if (nameParts.length > 1) {
+      const lastName = nameParts[nameParts.length - 1];
+      const firstName = nameParts.slice(0, -1).join("_");
+      return `${lastName}_${firstName}`;
+    }
+
+    return nameParts[0];
+  })();
+
+  const filename = `SAR_${prettyFilter}_${nameSegment}.pdf`;
+  doc.save(filename);
 };
