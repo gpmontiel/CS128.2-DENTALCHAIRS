@@ -32,9 +32,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage onLoginSuccess={(userData) => setUser(userData)} />} />
-                {/*<Route path="/admin" element={user?.role_id === 1 ? <ClinicalAdminHome /> : <Navigate to="/" />} />*/}
                 <Route path="/manager" element={user?.role_id === 2 ? <ManagerHome /> : <Navigate to="/" />} />
-                {/*<Route path="/clinician" element={user?.role_id === 3 ? <ClinicianSchedule /> : <Navigate to="/" />}/>*/}
                 <Route path="/clinician" element={<ClinicianSchedule />} />
 
                 <Route path="/clinicianRequest" element={<ClinicianRequest />} />
