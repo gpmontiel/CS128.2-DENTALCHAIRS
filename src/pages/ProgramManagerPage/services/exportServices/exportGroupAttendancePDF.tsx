@@ -265,7 +265,6 @@ export const exportGroupAttendancePDF = ({
   drawPDFCommonFooter({ doc });
 
   // Format the group name target for filename generation
-  // Converts spaces to underscores (e.g., "Group 3" -> "Group3" or "All Student Groups" -> "All_Student_Groups")
   let groupSegment = groupName.trim();
   if (isAllGroups) {
     groupSegment = groupSegment.replace(/\s+/g, "_");
