@@ -1,0 +1,69 @@
+/* APP BAR */
+.navbar-appbar {
+  background-color: #493979 !important;
+  padding: 8px 0;
+}
+
+/* WIDER CONTAINER */
+.navbar-container {
+  max-width: 100% !important;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+
+/* TOOLBAR */
+.navbar-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+/* LOGO */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-logo-img {
+  height: 28px;
+}
+
+.navbar-title {
+  font-weight: 700 !important;
+  color: #E9B0F8 !important;
+  font-size: 20px !important;
+}
+
+/* MENU POPUP (WITH ARROW) */
+.navbar-menu-paper {
+  overflow: visible !important;
+  margin-top: 10px !important;
+  min-width: 220px !important; 
+  max-width: 240px !important;
+  border-radius: 12px !important;
+  position: relative;
+}
+
+/* ARROW (BUBBLE POINTER) */
+.navbar-menu-paper::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  transform: rotate(45deg);
+  z-index: 0;
+  box-shadow: -2px -2px 5px rgba(0,0,0,0.05);
+}
+
+/* USER BOX */
+.navbar-userbox {
+  padding: 10px 14px;
+}
+
+/* LOGOUT */
+.logout-item {
+  color: red !important;
+}

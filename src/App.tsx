@@ -1,121 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage/LoginPage';
+import ManagerHome from "./pages/ProgramManagerPage/pages/ManagerHome.tsx";
+import ClinicianSchedule from "./pages/ClinicianPage/Schedule/Schedule.tsx";
+import ClinicianRequest from "./pages/ClinicianPage/Request/RequestSchedule.tsx";
+import ClinicianProfile from "./pages/ClinicianPage/Profile/Profile.tsx";
+import ClinicianEditProfile from "./pages/ClinicianPage/Profile/EditProfile.tsx";
+import RequestForm from './pages/ClinicianPage/Request/RequestForm.tsx';
+import Dashboard from "./pages/ChairManagerPage/pages/Dashboard.tsx";
+import ChairManagerLayout from "./pages/ChairManagerPage/layouts/ChairManagerLayout.tsx"
+import ManageRequests from "./pages/ChairManagerPage/pages/ManageRequests.tsx";
+import RequestHistory from "./pages/ChairManagerPage/pages/RequestHistory.tsx";
+import RequestHistoryDetails from "./pages/ChairManagerPage/pages/RequestHistoryDetails.tsx";
+import ChairManagerNotificationsPage from "./pages/ChairManagerPage/pages/ChairManagerNotificationsPage.tsx";
+import ClinicianNotificationsPage from './pages/ClinicianPage/Notification/ClinicianNotifications.tsx';
+import ManagerProfile from "./pages/ProgramManagerPage/profile-pages/Profile.tsx";
+import EditProfile from "./pages/ProgramManagerPage/profile-pages/EditProfile";
+import ClinicalAdminLayout from "./pages/ClinicalAdminPage/layouts/ClinicalAdminLayout.tsx";
+import ClinicalAdminStudents from "./pages/ClinicalAdminPage/Students/Students.tsx";
+import ClinicalAdminRequests from "./pages/ClinicalAdminPage/Requests/Requests.tsx";
+import ClinicalAdminAttendance from "./pages/ClinicalAdminPage/Attendance/Attendance.tsx";
+
+import AdminProfile from "./pages/ClinicalAdminPage/Profile/AdminProfile.tsx"
+import AdminEditProfile from "./pages/ClinicalAdminPage/Profile/AdminEditProfile.tsx";
+import AdminNotificationsPage from "./pages/ClinicalAdminPage/Notifications/AdminNotifications.tsx";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [user, setUser] = useState<any>(null);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<LoginPage onLoginSuccess={(userData) => setUser(userData)} />} />
+                {/*<Route path="/admin" element={user?.role_id === 1 ? <ClinicalAdminHome /> : <Navigate to="/" />} />*/}
+                <Route path="/manager" element={user?.role_id === 2 ? <ManagerHome /> : <Navigate to="/" />} />
+                {/*<Route path="/clinician" element={user?.role_id === 3 ? <ClinicianSchedule /> : <Navigate to="/" />}/>*/}
+                <Route path="/clinician" element={<ClinicianSchedule />} />
 
-      <div className="ticks"></div>
+                <Route path="/clinicianRequest" element={<ClinicianRequest />} />
+                <Route path="/profile" element={<ClinicianProfile />} />
+                <Route path="/edit-profile" element={<ClinicianEditProfile />} />
+                <Route path="/requestForm" element={<RequestForm />} />
+                <Route path="/clinician-notifications" element={<ClinicianNotificationsPage />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                <Route element={<ChairManagerLayout />}>
+                    <Route path="/chair-manager-home" element={<Dashboard />} />
+                    <Route path="/chair-manager/manage-requests" element={<ManageRequests />} />
+                    <Route path="/chair-manager/manage-requests/:assignmentId" element={<ManageRequests />}/>
+                    <Route path="/chair-manager/history" element={<RequestHistory />}/>
+                    <Route path="/chair-manager/history/:assignmentId" element={<RequestHistoryDetails />}/>
+                    <Route path="/chair-manager-notifications" element={<ChairManagerNotificationsPage />} />
+                </Route>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                <Route path="/admin-profile" element={<AdminProfile />} />
+                <Route path="/admin-edit-profile" element={<AdminEditProfile />} />
+                <Route path="/admin-notifications" element={<AdminNotificationsPage />} />
+                <Route path="/clinicalAdminReports" element={<ManagerHome />} />
+
+                <Route element={<ClinicalAdminLayout />}>
+                    <Route path="/clinicalAdminStudents" element={<ClinicalAdminStudents />} />
+                    <Route path="/clinicalAdminRequests" element={<ClinicalAdminRequests />} />
+                    <Route path="/clinicalAdminAttendance" element={<ClinicalAdminAttendance />} />
+                </Route>
+
+                <Route path="/program-manager/profile" element={<ManagerProfile />}/>
+                <Route path="/program-manager/profile/edit" element={<EditProfile />}/>
+                <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+        </Router>
+    );
 }
 
-export default App
+export default App;
