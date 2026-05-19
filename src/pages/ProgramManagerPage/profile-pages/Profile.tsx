@@ -6,7 +6,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabase";
 import "../css/ProfilePage.css";
-import {CircularProgress} from "@mui/material";
+import { CircularProgress, Snackbar, Alert } from "@mui/material";
 
 const useIsDesktop = () => {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -28,14 +28,18 @@ const Profile = () => {
     const isDesktop = useIsDesktop();
     const location = useLocation();
 
-    const fromProgramManager =
-        location.state?.fromProgramManager || false;
+    const fromProgramManager = location.state?.fromProgramManager || false;
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<
         "success" | "error" | "info" | "warning"
     >("success");
+
+    // Added a handler to close the snackbar when the user clicks away or the timer runs out
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -72,16 +76,8 @@ const Profile = () => {
 
     if (loading) {
         return (
-            // 1. Make the outer container fill the entire screen height using Flexbox
             <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-
-                {fromProgramManager ? (
-                    <ResponsiveAppBar />
-                ) : (
-                    <Navbar />
-                )}
-
-                {/* 2. This container will stretch to fill the rest of the screen and center the spinner */}
+                {fromProgramManager ? <ResponsiveAppBar /> : <Navbar />}
                 <div style={{
                     display: "flex",
                     justifyContent: "center",
@@ -90,18 +86,13 @@ const Profile = () => {
                 }}>
                     <CircularProgress />
                 </div>
-
             </div>
         );
     }
 
     return (
         <div>
-            {fromProgramManager ? (
-                <ResponsiveAppBar />
-            ) : (
-                <Navbar />
-            )}
+            {fromProgramManager ? <ResponsiveAppBar /> : <Navbar />}
 
             <div className="pm-profile-container">
                 <div className="pm-profile-header">
@@ -111,14 +102,9 @@ const Profile = () => {
                         <button
                             className="pm-edit-btn"
                             onClick={() =>
-                                navigate(
-                                    "/program-manager/profile/edit",
-                                    {
-                                        state: {
-                                            fromProgramManager: true,
-                                        },
-                                    }
-                                )
+                                navigate("/program-manager/profile/edit", {
+                                    state: { fromProgramManager: true },
+                                })
                             }
                         >
                             <EditIcon />
@@ -127,10 +113,7 @@ const Profile = () => {
                 </div>
 
                 <div className="pm-profile-img-wrapper">
-                    <img
-                        src={profile?.pfp || profileImage}
-                        className="pm-profile-img"
-                    />
+                    <img src={profile?.pfp || profileImage} className="pm-profile-img" alt="Profile" />
                 </div>
 
                 <p className="pm-name">
@@ -140,9 +123,7 @@ const Profile = () => {
                 <hr className="pm-divider" />
 
                 <div className="pm-info-section">
-                    <p className="pm-section-title">
-                        Personal Information
-                    </p>
+                    <p className="pm-section-title">Personal Information</p>
 
                     <div className="pm-info-row">
                         <span>First Name</span>
@@ -163,14 +144,9 @@ const Profile = () => {
                         <button
                             className="pm-mobile-edit-btn"
                             onClick={() =>
-                                navigate(
-                                    "/program-manager/profile/edit",
-                                    {
-                                        state: {
-                                            fromProgramManager: true,
-                                        },
-                                    }
-                                )
+                                navigate("/program-manager/profile/edit", {
+                                    state: { fromProgramManager: true },
+                                })
                             }
                         >
                             Edit Profile
@@ -178,6 +154,17 @@ const Profile = () => {
                     )}
                 </div>
             </div>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };

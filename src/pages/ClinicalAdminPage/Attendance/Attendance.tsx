@@ -32,6 +32,7 @@ interface SectionItem {
     section_id: number;
     section_name: string;
     room_id: number;
+    chair_count: number;
 }
 
 const Attendance: React.FC = () => {
@@ -48,7 +49,7 @@ const Attendance: React.FC = () => {
 
     // --- DASHBOARD METRICS STATE ---
     const [activeChairsCount, setActiveChairsCount] = useState<number>(0);
-    const [totalChairsCount, setTotalChairsCount] = useState<number>(20);
+    const [totalChairsCount, setTotalChairsCount] = useState<number>(0);
     const [presentStudentsCount, setPresentStudentsCount] = useState<number>(0);
 
     // --- WEEKLY CHART ANALYTICS STATE ---
@@ -56,7 +57,7 @@ const Attendance: React.FC = () => {
         { day: 'Mon', Present: 0 }, { day: 'Tue', Present: 0 }, { day: 'Wed', Present: 0 }, { day: 'Thu', Present: 0 }, { day: 'Fri', Present: 0 },
     ]);
 
-    const dateListRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    const dateListRef = useRef<{ [key: string]: HTMLDivElement | Element | null }>({});
 
     // --- CONVERTED CONFIRMATION POPUP STATE ---
     const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
@@ -89,10 +90,18 @@ const Attendance: React.FC = () => {
             if (studentData) setStudents(studentData as ProfileItem[]);
 
             const { data: sectionData } = await supabase.from('sections').select('*');
-            if (sectionData) setSections(sectionData as SectionItem[]);
+            if (sectionData) {
+                setSections(sectionData as SectionItem[]);
+
+                const totalChairs = (sectionData as SectionItem[]).reduce(
+                    (sum, section) => sum + (section.chair_count || 0), 0
+                );
+                setTotalChairsCount(totalChairs);
+            }
+
+            await fetchDashboardMetrics();
         };
         fetchInitialData();
-        fetchDashboardMetrics();
     }, [selectedDate]);
 
     // --- WEEKLY ANALYTICS CHART LOADING EFFECT ---
@@ -116,8 +125,8 @@ const Attendance: React.FC = () => {
                 .eq('status', 'Present')
                 .is('request_id', null);
 
-            const daysMap = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri' };
-            const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+            const daysMap: Record<string, string> = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri' };
+            const counts: { [key: string]: number } = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
 
             if (chairLogs) {
                 chairLogs.forEach((row: any) => {
@@ -125,7 +134,7 @@ const Attendance: React.FC = () => {
                     const attArray = Array.isArray(row.attendance) ? row.attendance : [row.attendance];
                     const presentsCount = attArray.filter((a: any) => a.status === 'Present').length;
                     const dayIndex = dayjs(row.date).day().toString();
-                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    const dayName = daysMap[dayIndex];
                     if (dayName) counts[dayName] += presentsCount;
                 });
             }
@@ -133,14 +142,14 @@ const Attendance: React.FC = () => {
             if (standaloneLogs) {
                 standaloneLogs.forEach((row: any) => {
                     const dayIndex = dayjs(row.date).day().toString();
-                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    const dayName = daysMap[dayIndex];
                     if (dayName) counts[dayName]++;
                 });
             }
 
             const formattedChart = Object.keys(counts).map(key => ({
                 day: key,
-                Present: counts[key as keyof typeof counts]
+                Present: counts[key]
             }));
 
             setWeeklyChartData(formattedChart);
@@ -494,7 +503,7 @@ const Attendance: React.FC = () => {
                             const dateStr = date.format('YYYY-MM-DD');
 
                             return (
-                                <Box key={i} ref={(el) => (dateListRef.current[dateStr] = el)} sx={{ minWidth: 55 }}>
+                                <Box key={i} ref={(el) => { dateListRef.current[dateStr] = el as HTMLDivElement | null; }} sx={{ minWidth: 55 }}>
                                     <Paper
                                         elevation={isSelected ? 3 : 0} onClick={() => setSelectedDate(date)}
                                         sx={{

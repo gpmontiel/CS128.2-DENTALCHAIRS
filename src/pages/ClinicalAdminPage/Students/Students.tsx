@@ -48,6 +48,7 @@ interface Student {
   studentNumber: string;
   yearLevel: string;
   batchName?: string;
+  pfpUrl?: string | null;
 }
 
 interface Batch {
@@ -465,7 +466,7 @@ const Management: React.FC = () => {
     }
   };
 
-  const handleDeleteStudent = async (batchId: string, studentId: string) => {
+  const handleDeleteStudent = async (studentId: string) => {
     const { error } = await supabase
         .from("clinician")
         .update({ group_id: null })
@@ -619,7 +620,7 @@ const Management: React.FC = () => {
                                           sx={{ borderBottom: "1px solid #f0f0f5", "&:last-child": { borderBottom: "none" } }}
                                           secondaryAction={
                                               isEditing && (
-                                                  <IconButton edge="end" onClick={() => handleDeleteStudent(batch.id, student.id)}>
+                                                  <IconButton edge="end" onClick={() => handleDeleteStudent(student.id)}>
                                                     <RemoveCircleOutlineIcon sx={{ color: "#493978" }} />
                                                   </IconButton>
                                               )

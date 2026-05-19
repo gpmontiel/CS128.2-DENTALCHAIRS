@@ -18,7 +18,6 @@ const RequestForm = () => {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [successOpen, setSuccessOpen] = useState(false);
     const [studentName, setStudentName] = useState("");
-    const [sectionName, setSectionName] = useState("");
 
     useEffect(() => {
         const fetchStudentName = async () => {

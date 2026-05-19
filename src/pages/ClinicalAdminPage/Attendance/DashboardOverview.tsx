@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Paper, Divider } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import ChairIcon from '@mui/icons-material/Chair';
 import PeopleIcon from '@mui/icons-material/People';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -42,7 +42,7 @@ const DashboardOverview: React.FC = () => {
                 .eq('status', 'Present')
                 .is('request_id', null);
 
-            let chairsCount = activeAssignments ? activeAssignments.length : 0;
+            const chairsCount = activeAssignments ? activeAssignments.length : 0;
             let studentsCount = 0;
 
             // Loop and add every individual body checked into a chair (clinician + assistant)
@@ -84,8 +84,8 @@ const DashboardOverview: React.FC = () => {
                 .eq('status', 'Present')
                 .is('request_id', null);
 
-            const daysMap = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri' };
-            const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+            const daysMap: Record<string, string> = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri' };
+            const counts: { [key: string]: number } = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
 
             if (chairLogs) {
                 chairLogs.forEach((row: any) => {
@@ -94,7 +94,7 @@ const DashboardOverview: React.FC = () => {
                     const presentsCount = attArray.filter((a: any) => a.status === 'Present').length;
 
                     const dayIndex = dayjs(row.date).day().toString();
-                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    const dayName = daysMap[dayIndex];
                     if (dayName) counts[dayName] += presentsCount;
                 });
             }
@@ -102,14 +102,14 @@ const DashboardOverview: React.FC = () => {
             if (standaloneLogs) {
                 standaloneLogs.forEach((row: any) => {
                     const dayIndex = dayjs(row.date).day().toString();
-                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    const dayName = daysMap[dayIndex];
                     if (dayName) counts[dayName]++;
                 });
             }
 
             const formattedChart = Object.keys(counts).map(key => ({
                 day: key,
-                Present: counts[key as keyof typeof counts]
+                Present: counts[key]
             }));
 
             setWeeklyChartData(formattedChart);

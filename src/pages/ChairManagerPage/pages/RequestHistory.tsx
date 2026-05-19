@@ -8,10 +8,19 @@ import dayjs from "dayjs";
 import localeData from "dayjs/plugin/localeData";
 dayjs.extend(localeData);
 
+interface FormattedHistoryItem {
+    assignment_id: number;
+    date: string;
+    shift: string;
+    status: string;
+    room: string;
+    section: string;
+}
+
 const RequestHistory = () => {
     const navigate = useNavigate();
 
-    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [historyData, setHistoryData] = useState<FormattedHistoryItem[]>([]);
     useEffect(() => {
         const fetchHistory = async () => {
             try {
@@ -38,14 +47,18 @@ const RequestHistory = () => {
 
                 if (error) throw error;
 
-                const formatted = data?.map(item => ({
-                    assignment_id: item.assignment_id,
-                    date: item.date,
-                    shift: item.shift,
-                    status: item.status,
-                    room: item.section?.room?.room_name || 'N/A',
-                    section: item.section?.section_name || 'N/A',
-                })) || [];
+                const formatted: FormattedHistoryItem[] = data?.map(item => {
+                    const sectionData = item.section as any;
+
+                    return {
+                        assignment_id: item.assignment_id,
+                        date: item.date,
+                        shift: item.shift,
+                        status: item.status,
+                        room: sectionData?.room?.room_name || 'N/A',
+                        section: sectionData?.section_name || 'N/A',
+                    };
+                }) || [];
 
                 setHistoryData(formatted);
             } catch (err) {

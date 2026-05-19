@@ -125,17 +125,6 @@ const ResponsiveAppBar: React.FC = () => {
         navigate("/");
     };
 
-    const updateProfile = (newProfile: any, newPfpUrl: string) => {
-        setProfile(newProfile);
-        setPfpUrl(newPfpUrl);
-        localStorage.setItem('userProfile', JSON.stringify(newProfile));
-        localStorage.setItem('userPfp', newPfpUrl);
-        
-        window.dispatchEvent(new CustomEvent('profileUpdated', {
-            detail: { profile: newProfile, pfpUrl: newPfpUrl }
-        }));
-    };
-
     const [notifAnchor, setNotifAnchor] = React.useState<null | HTMLElement>(null);
     const openNotif = Boolean(notifAnchor);
 

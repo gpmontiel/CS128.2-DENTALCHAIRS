@@ -279,7 +279,7 @@ const Requests = () => {
                         const groupInfo = clinicianInfo?.student_groups;
 
                         return (
-                            <Grid item xs={12} key={req.assignment_id}>
+                            <Grid size={{ xs: 12 }} key={req.assignment_id}>
                                 <Paper
                                     elevation={0}
                                     sx={{

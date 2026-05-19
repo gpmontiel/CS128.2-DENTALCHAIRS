@@ -1,7 +1,7 @@
 import "./RequestSchedule.css"; 
 import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabase";
 import {CircularProgress} from "@mui/material";
 
@@ -40,32 +40,31 @@ const RequestSchedule = () => {
             const { data, error } = await supabase
                 .from('dental_chairs_request_assignment')
                 .select(`
-                    date,
-                    shift,
-                    status,
-                    student_id,
-                    sections (
-                        section_name,
-                        rooms (
-                            room_name
-                        )
+                request_id,
+                date,
+                shift,
+                status,
+                student_id,
+                sections (
+                    section_name,
+                    rooms (
+                        room_name
                     )
-                `)
-            .eq("student_id", userId)
-            .order("date", { ascending: false })
-            .order("shift", { ascending: true });
-
-            console.log("Fetched Data:", data);
-            console.log("Error:", error);
+                )
+            `)
+                .eq("student_id", userId)
+                .order("date", { ascending: false })
+                .order("shift", { ascending: true });
 
             if (error) {
                 console.error(error);
             } else {
-                console.log("Fetched Data:", data); 
-                setSchedules(data || []);
+                console.log("Fetched Data:", data);
+                // 2. CRITICAL: Cast data as any[] to appease the nested array type mismatch
+                setSchedules((data as any[]) || []);
             }
 
-            setLoading(false); 
+            setLoading(false);
         };
 
         fetchSchedules();

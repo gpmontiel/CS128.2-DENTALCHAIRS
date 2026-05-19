@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-light.png";
 import { AppBar, Box, Toolbar, Typography, Container, Avatar, Drawer, Badge, Divider, ListItemIcon, Menu, MenuItem, IconButton, Button, List, ListItem, ListItemButton, ListItemText} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
-import EditIcon from '@mui/icons-material/Edit';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -69,7 +68,7 @@ const ResponsiveAppBar: React.FC = () => {
     const [pfpUrl, setPfpUrl] = React.useState<string>(() => {
         return localStorage.getItem('chairUserPfp') || '';
     });
-    const [profile, setProfile] = React.useState<any>(() => {
+    const [setProfile] = React.useState<any>(() => {
         const cached = localStorage.getItem('chairUserProfile');
         return cached ? JSON.parse(cached) : null;
     });
@@ -203,41 +202,6 @@ const ResponsiveAppBar: React.FC = () => {
     const handleMobileNavigate = (path: string) => {
         navigate(path);
         setOpenDrawer(false); 
-    };
-
-    const updateProfile = (newProfile: any, newPfpUrl: string, newFirstName?: string, newLastName?: string, newUserRole?: string) => {
-        if (newProfile) {
-            setProfile(newProfile);
-            localStorage.setItem('chairUserProfile', JSON.stringify(newProfile));
-        }
-        if (newPfpUrl) {
-            setPfpUrl(newPfpUrl);
-            localStorage.setItem('chairUserPfp', newPfpUrl);
-        }
-        if (newFirstName) {
-            setFirstName(newFirstName);
-            localStorage.setItem('chairUserFirstName', newFirstName);
-            setUserInitial(newFirstName.charAt(0).toUpperCase());
-            localStorage.setItem('chairUserInitial', newFirstName.charAt(0).toUpperCase());
-        }
-        if (newLastName) {
-            setLastName(newLastName);
-            localStorage.setItem('chairUserLastName', newLastName);
-        }
-        if (newUserRole) {
-            setUserRole(newUserRole);
-            localStorage.setItem('chairUserRole', newUserRole);
-        }
-        
-        window.dispatchEvent(new CustomEvent('chairProfileUpdated', {
-            detail: { 
-                profile: newProfile, 
-                pfpUrl: newPfpUrl,
-                firstName: newFirstName,
-                lastName: newLastName,
-                userRole: newUserRole
-            }
-        }));
     };
 
     const [notifAnchor, setNotifAnchor] = React.useState<null | HTMLElement>(null);

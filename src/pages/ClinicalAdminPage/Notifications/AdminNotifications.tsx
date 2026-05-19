@@ -3,7 +3,6 @@ import {
     Button, Card, Divider,
     Typography
 } from "@mui/material";
-import {useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "../../../utils/supabase.ts";
 import dayjs from "dayjs";

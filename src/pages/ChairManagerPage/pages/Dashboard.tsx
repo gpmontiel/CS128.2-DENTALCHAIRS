@@ -147,13 +147,20 @@ const Dashboard : React.FC = () => {
 
             if (error) throw error;
 
-            const transformedData = data?.map(item => ({
-                ...item,
-                room: item.section?.room?.room_name || 'N/A',
-                section: item.section?.section_name || 'N/A',
-                date: item.date,
-                shift: item.shift
-            })) || [];
+            const transformedData = data?.map(item => {
+                // Safely cast or infer the nested structure since Supabase treats joins as objects/arrays loosely
+                const sectionData = item.section as any;
+
+                return {
+                    ...item,
+                    // If section and room exist, extract the room_name directly from the object
+                    room: sectionData?.room?.room_name || 'N/A',
+                    // Extract section_name directly from the object
+                    section: sectionData?.section_name || 'N/A',
+                    date: item.date,
+                    shift: item.shift
+                };
+            }) || [];
 
             setPendingRequests(transformedData);
         } catch (error) {
@@ -346,13 +353,17 @@ const Dashboard : React.FC = () => {
 
             if (error) throw error;
 
-            const transformedData = data?.map(item => ({
-                ...item,
-                room: item.section?.room?.room_name || 'N/A',
-                section: item.section?.section_name || 'N/A',
-                date: item.date,
-                shift: item.shift
-            })) || [];
+            const transformedData = data?.map(item => {
+                const sectionData = item.section as any;
+
+                return {
+                    ...item,
+                    room: sectionData?.room?.room_name || 'N/A',
+                    section: sectionData?.section_name || 'N/A',
+                    date: item.date,
+                    shift: item.shift
+                };
+            }) || [];
 
             setAssignmentData(transformedData);
         } catch (error) {
@@ -406,7 +417,7 @@ const Dashboard : React.FC = () => {
 
                     if (admins && admins.length > 0) {
                         const prettyDate = dayjs(targetReq.date).format('MMMM D, YYYY');
-                        const sectionName = targetReq.sections?.section_name || 'N/A';
+                        const sectionName = (targetReq.sections as any)?.section_name || 'N/A';
 
                         const cancellationPayloads = admins.map(admin => ({
                             user_id: admin.profile_id,
@@ -472,14 +483,19 @@ const Dashboard : React.FC = () => {
 
             if (error) throw error;
 
-            const formatted = data?.map(item => ({
-                assignment_id: item.assignment_id,
-                date: item.date,
-                shift: item.shift,
-                status: item.status,
-                room: item.section?.room?.room_name || 'N/A',
-                section: item.section?.section_name || 'N/A',
-            })) || [];
+            const formatted = data?.map(item => {
+                // Cast the nested section data to any so TypeScript lets you read it as an object
+                const sectionData = item.section as any;
+
+                return {
+                    assignment_id: item.assignment_id,
+                    date: item.date,
+                    shift: item.shift,
+                    status: item.status,
+                    room: sectionData?.room?.room_name || 'N/A',
+                    section: sectionData?.section_name || 'N/A',
+                };
+            }) || [];
 
             setHistoryData(formatted);
         } catch (err) {

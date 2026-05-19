@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import profileImage from "../../../assets/profile-icon-blank.png";
 import EditIcon from '@mui/icons-material/Edit';
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { supabase } from "../../../utils/supabase";
 
 const useIsDesktop = () => {
@@ -32,7 +32,6 @@ const Profile = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
-    const [successOpen, setSuccessOpen] = useState(false);  
 
     useEffect(() => {
         const fetchProfile = async () => {

@@ -98,8 +98,8 @@ const RequestHistoryDetails = () => {
         fetchRequestCount();
     }, [assignment]);
 
-    const getProgressStyles = (available, total) => {
-        const ratio = available / total;
+    const getProgressStyles = (available: number, total: number) => {
+        const ratio = total > 0 ? available / total : 0;
 
         if (ratio === 0) {
             return { bg: "#FFEBEE", bar: "#D32F2F", text: "#B71C1C", label: "Full Capacity" };

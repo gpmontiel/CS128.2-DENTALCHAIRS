@@ -1,5 +1,5 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import {
     TextField,
     MenuItem,
@@ -15,25 +15,8 @@ import ResponsiveAppBar from "../components/ProgramManagerNavbar";
 import { supabase } from "../../../utils/supabase";
 import "../css/EditProfilePage.css";
 
-const useIsDesktop = () => {
-    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-
-    useEffect(() => {
-        const handler = () => setIsDesktop(window.innerWidth >= 768);
-        window.addEventListener("resize", handler);
-        return () => window.removeEventListener("resize", handler);
-    }, []);
-
-    return isDesktop;
-};
-
 const EditProfile = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const isDesktop = useIsDesktop();
-
-    // ✅ FIXED: do NOT default to true
-    const fromProgramManager = location.state?.fromProgramManager || false;
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -48,9 +31,7 @@ const EditProfile = () => {
     const [snackbarSeverity, setSnackbarSeverity] = useState<
         "success" | "error" | "info" | "warning"
     >("success");
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
+    useRef<HTMLInputElement>(null);
     useEffect(() => {
         const fetchProfile = async () => {
             const { data: userData } = await supabase.auth.getUser();

@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import ResponsiveAppBar from "../../ChairManagerPage/components/ChairManagerNavbar";
 import {
@@ -33,7 +33,6 @@ const AdminProfile = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
-    const [successOpen, setSuccessOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {

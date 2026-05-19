@@ -1,11 +1,9 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useRef } from "react";
 import {
-    Box,
     TextField,
     MenuItem,
     FormControl,
-    InputLabel,
     Select,
     Button,
     Snackbar,
@@ -50,9 +48,7 @@ const useIsDesktop = () => {
 
 const EditProfile = () => {
     const navigate = useNavigate();
-    const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
@@ -72,7 +68,6 @@ const EditProfile = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
-    const [successOpen, setSuccessOpen] = useState(false);  
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [originalData, setOriginalData] = useState({
@@ -119,8 +114,7 @@ const EditProfile = () => {
                 setSnackbarSeverity("error");
                 setSnackbarOpen(true);
             } else {
-                console.log("Fetched Data:", data); 
-                setProfile(data || []);
+                console.log("Fetched Data:", data);
 
                 setFirstName(data?.first_name || "");
                 setLastName(data?.last_name || "");
@@ -359,7 +353,7 @@ const EditProfile = () => {
                     />
                     <Button
                         onClick={handleCameraClick}
-                        disabled={uploading}
+                        disabled={saving}
                         sx={{
                             position: "absolute",
                             bottom: 0,
@@ -379,15 +373,9 @@ const EditProfile = () => {
                             },
                         }}
                     >
-                        <CameraAltIcon fontSize="smaller" />
+                        <CameraAltIcon fontSize="small" />
                     </Button>
-                </div> 
-
-                {uploading && (
-                    <p style={{ textAlign: "center", color: "#382d5f", marginTop: "10px" }}>
-                        Uploading...
-                    </p>
-                )}
+                </div>
 
                 <hr style={{width: "90%", margin: "15px auto"}}></hr>
 
