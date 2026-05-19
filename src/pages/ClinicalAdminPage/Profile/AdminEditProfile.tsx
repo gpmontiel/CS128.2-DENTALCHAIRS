@@ -1,6 +1,15 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useRef } from "react";
-import { Box, TextField, MenuItem, FormControl, InputLabel, Select, Button, Snackbar, Alert } from "@mui/material";
+import {
+    TextField,
+    MenuItem,
+    FormControl,
+    Select,
+    Button,
+    Snackbar,
+    Alert,
+    CircularProgress
+} from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AdminNavbar from "../components/AdminNavbar";
@@ -8,6 +17,7 @@ import ResponsiveAppBar from "../../ChairManagerPage/components/ChairManagerNavb
 import profileImage from "../../../assets/profile-icon-blank.png";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { supabase } from "../../../utils/supabase";
+import Navbar from "../../ClinicianPage/components/Navbar.tsx";
 
 interface StudentGroup {
     group_name: string;
@@ -239,10 +249,16 @@ const EditProfile = () => {
 
     if (loading) {
         return (
-            <div>
-                {fromChairManager ? <ResponsiveAppBar /> : <AdminNavbar />}
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+            // Use a flex column layout for the whole page
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+                <Navbar />
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );

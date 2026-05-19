@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import {
     Box, Typography, Card, Button, Grid, Chip, Dialog, DialogTitle, DialogContent,
-    DialogActions, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert
+    DialogActions, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert,
+    CircularProgress
 } from "@mui/material";
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -35,6 +36,9 @@ interface Section {
 }
 
 const Dashboard : React.FC = () => {
+    // 2. Added the loading state here
+    const [loading, setLoading] = useState(true);
+
     const [isChairManager, setIsChairManager] = useState(false);
     const navigate = useNavigate();
 
@@ -61,23 +65,20 @@ const Dashboard : React.FC = () => {
         shift: ''
     });
 
-    useEffect(() => {
-        const fetchRooms = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('rooms')
-                    .select('*')
-                    .order('room_name');
+    // 3. Consolidated data fetches into cleanly callable functions
+    const fetchRooms = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('rooms')
+                .select('*')
+                .order('room_name');
 
-                if (error) throw error;
-                setRooms(data);
-            } catch (error) {
-                console.error('Error fetching rooms:', error);
-            }
-        };
-
-        fetchRooms();
-    }, []);
+            if (error) throw error;
+            setRooms(data);
+        } catch (error) {
+            console.error('Error fetching rooms:', error);
+        }
+    };
 
     const fetchSections = async (room_id: number) => {
         try {
@@ -159,10 +160,6 @@ const Dashboard : React.FC = () => {
             console.error('Error fetching pending requests:', error);
         }
     };
-
-    useEffect(() => {
-        fetchPendingRequests();
-    }, []);
 
     const handleSubmit = async () => {
         try {
@@ -293,36 +290,32 @@ const Dashboard : React.FC = () => {
         return s.room_id === selectedRoom?.room_id;
     }) : [];
 
-    useEffect(() => {
-        const checkChairManagerStatus = async () => {
-            try {
-                const today = new Date().toISOString().split('T')[0];
+    const checkChairManagerStatus = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
 
-                const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
 
-                if (!user) {
-                    setIsChairManager(false);
-                    return;
-                }
-
-                const { data, error } = await supabase
-                    .from('chair_manager_assignment')
-                    .select('assignment_id')
-                    .eq('student_id', user.id)
-                    .eq('status', 'Confirmed')
-                    .gte('date', today);
-
-                if (error) throw error;
-
-                setIsChairManager(data.length > 0);
-            } catch (error) {
-                console.error('Error checking chair manager status:', error);
+            if (!user) {
                 setIsChairManager(false);
+                return;
             }
-        };
 
-        checkChairManagerStatus();
-    }, [])
+            const { data, error } = await supabase
+                .from('chair_manager_assignment')
+                .select('assignment_id')
+                .eq('student_id', user.id)
+                .eq('status', 'Confirmed')
+                .gte('date', today);
+
+            if (error) throw error;
+
+            setIsChairManager(data.length > 0);
+        } catch (error) {
+            console.error('Error checking chair manager status:', error);
+            setIsChairManager(false);
+        }
+    };
 
     const [assignmentData, setAssignmentData] = useState<any[]>([]);
 
@@ -367,10 +360,6 @@ const Dashboard : React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        fetchAssignments();
-    }, []);
-
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
     const handleCancelClick = (assignment_id: number) => {
@@ -382,7 +371,6 @@ const Dashboard : React.FC = () => {
         if (!selectedAssignmentId) return;
 
         try {
-            // Fetch targeted data details before cancellation changes status
             const { data: targetReq } = await supabase
                 .from('chair_manager_assignment')
                 .select(`
@@ -435,7 +423,6 @@ const Dashboard : React.FC = () => {
                 }
             }
 
-            // Update UI by updating all relevant data arrays
             await fetchPendingRequests();
             await fetchAssignments();
 
@@ -458,49 +445,68 @@ const Dashboard : React.FC = () => {
     };
 
     const [historyData, setHistoryData] = useState<any[]>([]);
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
 
-                if (!user) return;
+    const fetchHistory = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
 
-                const { data, error } = await supabase
-                    .from('chair_manager_assignment')
-                    .select(`
-                    assignment_id,
-                    date,
-                    shift,
-                    status,
-                    section:section_id (
-                        section_name,
-                        room:room_id (
-                            room_name
-                        )
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('chair_manager_assignment')
+                .select(`
+                assignment_id,
+                date,
+                shift,
+                status,
+                section:section_id (
+                    section_name,
+                    room:room_id (
+                        room_name
                     )
-                `)
-                    .eq('student_id', user.id)
-                    .order('date', { ascending: false })
-                    .limit(3);
+                )
+            `)
+                .eq('student_id', user.id)
+                .order('date', { ascending: false })
+                .limit(3);
 
-                if (error) throw error;
+            if (error) throw error;
 
-                const formatted = data?.map(item => ({
-                    assignment_id: item.assignment_id,
-                    date: item.date,
-                    shift: item.shift,
-                    status: item.status,
-                    room: item.section?.room?.room_name || 'N/A',
-                    section: item.section?.section_name || 'N/A',
-                })) || [];
+            const formatted = data?.map(item => ({
+                assignment_id: item.assignment_id,
+                date: item.date,
+                shift: item.shift,
+                status: item.status,
+                room: item.section?.room?.room_name || 'N/A',
+                section: item.section?.section_name || 'N/A',
+            })) || [];
 
-                setHistoryData(formatted);
+            setHistoryData(formatted);
+        } catch (err) {
+            console.error('Error fetching history:', err);
+        }
+    };
+
+    // 4. Single multi-fetch engine running everything in parallel on mount
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    fetchRooms(),
+                    fetchPendingRequests(),
+                    checkChairManagerStatus(),
+                    fetchAssignments(),
+                    fetchHistory()
+                ]);
             } catch (err) {
-                console.error('Error fetching history:', err);
+                console.error("Error loading dashboard requirements:", err);
+            } finally {
+                setLoading(false); // Disables spinner when all queries conclude
             }
         };
 
-        fetchHistory();
+        loadDashboardData();
     }, []);
 
     const getHistoryStatus = (item: any) => {
@@ -536,7 +542,6 @@ const Dashboard : React.FC = () => {
         }
     };
 
-    // Shared UI block helper to render pending cards cleanly under either mode
     const renderPendingRequestsSection = () => {
         if (pendingRequests.length === 0) return null;
 
@@ -598,6 +603,20 @@ const Dashboard : React.FC = () => {
         );
     };
 
+    if (loading) {
+        return (
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh',
+                backgroundColor: '#ffffff'
+            }}>
+                <CircularProgress sx={{ color: '#493979' }} />
+            </Box>
+        );
+    }
+
     return (
         <Box
             fontFamily="Inter"
@@ -609,7 +628,6 @@ const Dashboard : React.FC = () => {
 
             {/* Status Section */}
             {isChairManager ? (
-                // Chair Manager View (Supports Multiple Cards)
                 <Box sx={{ mx: 3, mb: 3 }}>
                     <Typography
                         variant="h6"
@@ -739,7 +757,6 @@ const Dashboard : React.FC = () => {
                         </Card>
                     ))}
 
-                    {/* Request Role Section for active chair managers */}
                     <Box sx={{ mt: 3, borderTop: '1px solid #4A3979', pt: 2  }}>
                         <Typography
                             variant="h6"
@@ -768,7 +785,6 @@ const Dashboard : React.FC = () => {
                     </Box>
                 </Box>
             ) : (
-                // Non-Chair Manager View
                 <Card sx={{ mx: 3, mb: 3, p: 2, borderRadius: 2, boxShadow: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'left', gap: 1 }}>
                         <Chip
@@ -812,7 +828,6 @@ const Dashboard : React.FC = () => {
                 </Card>
             )}
 
-            {/* Dialog components remain intact */}
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ fontWeight: 'bold', pb: 0 }}> Request Role </DialogTitle>
                 <Typography variant="caption" sx={{ px: 3, color: 'text.secondary' }}>

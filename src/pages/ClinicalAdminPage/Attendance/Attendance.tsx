@@ -3,15 +3,17 @@ import {
     Box, Typography, Button, IconButton, List, ListItem,
     ListItemAvatar, ListItemText, Avatar, Paper, CircularProgress, Chip,
     Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
-    InputLabel, Select, MenuItem, TextField, RadioGroup, FormControlLabel, Radio
+    InputLabel, Select, MenuItem, TextField, Divider,
+    Snackbar, Alert // <-- 1. Imported Snackbar and Alert components
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarsIcon from '@mui/icons-material/Stars';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import CloseIcon from '@mui/icons-material/Close';
-import PrintIcon from '@mui/icons-material/Print';
+import ChairIcon from '@mui/icons-material/Chair';
+import PeopleIcon from '@mui/icons-material/People';
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import { supabase } from "../../../utils/supabase";
 import dayjs from "dayjs";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface RoomItem {
     room_id: number;
@@ -32,11 +34,6 @@ interface SectionItem {
     room_id: number;
 }
 
-interface BatchItem {
-    id: number;
-    label: string;
-}
-
 const Attendance: React.FC = () => {
     const [view, setView] = useState<'calendar' | 'rooms' | 'list'>('calendar');
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs>(dayjs());
@@ -45,41 +42,40 @@ const Attendance: React.FC = () => {
     const [attendanceList, setAttendanceList] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    // --- LIVE LIST FILTER SELECTION STATE ---
+    const [filterShift, setFilterShift] = useState<string>("All");
+    const [filterSection, setFilterSection] = useState<string>("All");
+
+    // --- DASHBOARD METRICS STATE ---
+    const [activeChairsCount, setActiveChairsCount] = useState<number>(0);
+    const [totalChairsCount, setTotalChairsCount] = useState<number>(20);
+    const [presentStudentsCount, setPresentStudentsCount] = useState<number>(0);
+
+    // --- WEEKLY CHART ANALYTICS STATE ---
+    const [weeklyChartData, setWeeklyChartData] = useState([
+        { day: 'Mon', Present: 0 }, { day: 'Tue', Present: 0 }, { day: 'Wed', Present: 0 }, { day: 'Thu', Present: 0 }, { day: 'Fri', Present: 0 },
+    ]);
+
     const dateListRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    // --- REASON POPUP STATE ---
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-    const [activeAction, setActiveAction] = useState<{ requestId: number; status: 'Present' | 'Absent'; isAssistant: boolean } | null>(null);
-    const [reason, setReason] = useState<string>("");
-    const [customReason, setCustomReason] = useState<string>("");
+    // --- CONVERTED CONFIRMATION POPUP STATE ---
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+    const [activeAction, setActiveAction] = useState<{ requestId: number | null; status: 'Present' | 'Absent'; isAssistant: boolean; attendanceId?: number } | null>(null);
 
     // --- MANUAL ENTRY STATE ---
     const [manualDialogOpen, setManualDialogOpen] = useState<boolean>(false);
     const [students, setStudents] = useState<ProfileItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
     const [manualForm, setManualForm] = useState({
-        studentId: "",
-        roomId: "",
-        sectionId: "",
-        date: dayjs().format('YYYY-MM-DD'),
-        shift: "",
-        status: "Present"
+        studentId: "", roomId: "", sectionId: "", date: dayjs().format('YYYY-MM-DD'), shift: "AM", status: "Present", reason: "Case Discussion", customReason: ""
     });
 
-    // --- PDF REPORT CONFIGURATION STATE ---
-    const [reportDialogOpen, setReportDialogOpen] = useState<boolean>(false);
-    const [reportType, setReportType] = useState<'batch' | 'overall'>('batch');
-    const [batches, setBatches] = useState<BatchItem[]>([]);
-    const [selectedBatchId, setSelectedBatchId] = useState<number | "">("");
-    const [reportWeekStart, setReportWeekStart] = useState<string>(dayjs().startOf('week').format('YYYY-MM-DD'));
-    const [reportMonth, setReportMonth] = useState<string>(dayjs().format('YYYY-MM'));
-
-    // --- NEW IN-APP PRINT PREVIEW OVERLAY STATE ---
-    const [previewOpen, setPreviewOpen] = useState<boolean>(false);
-    const [previewHtml, setPreviewHtml] = useState<string>("");
-
-    // Explicit structural clinic ledger categories
-    const targetedColumns = ["OD", "TRIAGE", "OS", "OM", "OP", "PROSTHO", "COH"];
+    // --- 2. FLOATING TOAST NOTIFICATION STATE ---
+    const [toast, setToast] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
+        open: false,
+        message: "",
+        severity: "success"
+    });
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -94,637 +90,441 @@ const Attendance: React.FC = () => {
 
             const { data: sectionData } = await supabase.from('sections').select('*');
             if (sectionData) setSections(sectionData as SectionItem[]);
-
-            const { data: groupData, error: groupError } = await supabase
-                .from('student_groups')
-                .select('group_id, group_name')
-                .order('group_id', { ascending: true });
-
-            if (groupData && !groupError) {
-                const formattedBatches = groupData.map((g: any) => ({
-                    id: g.group_id,
-                    label: g.group_name
-                }));
-                setBatches(formattedBatches);
-            } else {
-                setBatches([
-                    { id: 2, label: "PCB Sinag" },
-                    { id: 3, label: "PCB Banaag" },
-                    { id: 4, label: "PCB Agos" }
-                ]);
-            }
         };
         fetchInitialData();
-    }, []);
+        fetchDashboardMetrics();
+    }, [selectedDate]);
 
-    // --- BULLETPROOF FETCH LOGIC ---
+    // --- WEEKLY ANALYTICS CHART LOADING EFFECT ---
+    useEffect(() => {
+        const fetchWeeklyAnalytics = async () => {
+            const startOfWeek = selectedDate.startOf('week').add(1, 'day').format('YYYY-MM-DD');
+            const endOfWeek = selectedDate.startOf('week').add(5, 'day').format('YYYY-MM-DD');
+
+            const { data: chairLogs } = await supabase
+                .from('dental_chairs_request_assignment')
+                .select(`date, attendance (status)`)
+                .gte('date', startOfWeek)
+                .lte('date', endOfWeek)
+                .eq('status', 'Accepted');
+
+            const { data: standaloneLogs } = await supabase
+                .from('attendance')
+                .select('date, status')
+                .gte('date', startOfWeek)
+                .lte('date', endOfWeek)
+                .eq('status', 'Present')
+                .is('request_id', null);
+
+            const daysMap = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri' };
+            const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+
+            if (chairLogs) {
+                chairLogs.forEach((row: any) => {
+                    if (!row.attendance) return;
+                    const attArray = Array.isArray(row.attendance) ? row.attendance : [row.attendance];
+                    const presentsCount = attArray.filter((a: any) => a.status === 'Present').length;
+                    const dayIndex = dayjs(row.date).day().toString();
+                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    if (dayName) counts[dayName] += presentsCount;
+                });
+            }
+
+            if (standaloneLogs) {
+                standaloneLogs.forEach((row: any) => {
+                    const dayIndex = dayjs(row.date).day().toString();
+                    const dayName = daysMap[dayIndex as keyof typeof daysMap];
+                    if (dayName) counts[dayName]++;
+                });
+            }
+
+            const formattedChart = Object.keys(counts).map(key => ({
+                day: key,
+                Present: counts[key as keyof typeof counts]
+            }));
+
+            setWeeklyChartData(formattedChart);
+        };
+        fetchWeeklyAnalytics();
+    }, [selectedDate]);
+
+    // --- COMBINED METRICS ENGINE ---
+    const fetchDashboardMetrics = async () => {
+        const formattedDate = selectedDate.format('YYYY-MM-DD');
+
+        const { data: activeAssignments } = await supabase
+            .from('dental_chairs_request_assignment')
+            .select(`request_id, status, attendance!inner (status, reason)`)
+            .eq('date', formattedDate)
+            .eq('status', 'Accepted')
+            .eq('attendance.status', 'Present');
+
+        const { data: manualEntries } = await supabase
+            .from('attendance')
+            .select('status, reason')
+            .eq('date', formattedDate)
+            .eq('status', 'Present')
+            .is('request_id', null);
+
+        let chairsCount = activeAssignments ? activeAssignments.length : 0;
+        let studentsCount = 0;
+
+        if (activeAssignments) {
+            activeAssignments.forEach((item: any) => {
+                if (!item.attendance) return;
+                const attArray = Array.isArray(item.attendance) ? item.attendance : [item.attendance];
+                studentsCount += attArray.filter((a: any) => a.status === 'Present').length;
+            });
+        }
+
+        if (manualEntries) {
+            studentsCount += manualEntries.length;
+        }
+
+        setActiveChairsCount(chairsCount);
+        setPresentStudentsCount(studentsCount);
+    };
+
+    // --- COMBINED FETCH ENGINE ---
     const fetchAttendance = async (roomId: number) => {
         setLoading(true);
         const formattedDate = selectedDate.format('YYYY-MM-DD');
+        const flattenedList: any[] = [];
 
-        const { data, error } = await supabase
+        const { data: assignmentData, error: assignmentErr } = await supabase
             .from('dental_chairs_request_assignment')
             .select(`
-                request_id, 
-                status, 
-                shift,
-                date,
-                student_id (
-                    clinician_id,
-                    profiles (first_name, last_name, pfp)
-                ),
-                assistant_id (
-                    clinician_id,
-                    profiles (first_name, last_name, pfp)
-                ),
-                sections (
-                    section_name,
-                    room_id
-                ),
-                attendance (status, reason)
+                request_id, status, shift, date,
+                student_id (clinician_id, profiles (first_name, last_name, pfp)),
+                assistant_id (clinician_id, profiles (first_name, last_name, pfp)),
+                sections (section_name, room_id),
+                attendance (attendance_id, status, reason)
             `)
             .eq('date', formattedDate);
 
-        if (!error && data) {
-            const matchingRows = data.filter((item: any) => {
-                const statusMatch = item.status === 'Accepted';
-                const roomMatch = Number(item.sections?.room_id) === Number(roomId);
-                return statusMatch && roomMatch;
+        if (!assignmentErr && assignmentData) {
+            const matchingRows = assignmentData.filter((item: any) => {
+                return item.status === 'Accepted' && Number(item.sections?.room_id) === Number(roomId);
             });
-
-            const flattenedList: any[] = [];
 
             matchingRows.forEach((item: any) => {
                 let primaryStatus = null;
                 let assistantStatus = null;
                 let primaryReason = null;
                 let assistantReason = null;
+                const sectionName = item.sections?.section_name || "";
 
-                // Robust multi-format parsing for the attendance link
                 if (item.attendance) {
                     const attArray = Array.isArray(item.attendance) ? item.attendance : [item.attendance];
-
                     if (attArray.length > 0) {
-                        // 1. Isolate Assistant records explicitly tracking 'Assistant'
                         const assistLog = attArray.find((a: any) => a && a.reason === 'Assistant');
-
-                        // 2. Isolate Primary records explicitly tracking non-assistant keys
                         const mainLog = attArray.find((a: any) => a && a.reason !== 'Assistant' && a.reason !== null && a.reason !== '');
 
-                        // 3. Fallback: If there is exactly ONE attendance entry, and reason is NULL or unassigned
                         if (attArray.length === 1 && (attArray[0].reason === null || attArray[0].reason === '')) {
                             primaryStatus = attArray[0].status;
                             assistantStatus = attArray[0].status;
                             primaryReason = attArray[0].reason;
                             assistantReason = attArray[0].reason;
                         } else {
-                            // Standard multi-row tracking mapping layout rules
                             primaryStatus = mainLog ? mainLog.status : (attArray.find((a: any) => a.reason !== 'Assistant')?.status || null);
                             assistantStatus = assistLog ? assistLog.status : null;
-
                             primaryReason = mainLog ? mainLog.reason : (attArray.find((a: any) => a.reason !== 'Assistant')?.reason || null);
                             assistantReason = assistLog ? assistLog.reason : null;
                         }
                     }
                 }
 
-                // 1. Resolve raw arrays for Student
                 const studentData = Array.isArray(item.student_id) ? item.student_id[0] : item.student_id;
-                const rawStudentProfile = studentData?.profiles
-                    ? (Array.isArray(studentData.profiles) ? studentData.profiles[0] : studentData.profiles)
-                    : null;
-
-                // 2. Resolve raw arrays for Assistant
+                const rawStudentProfile = studentData?.profiles ? (Array.isArray(studentData.profiles) ? studentData.profiles[0] : studentData.profiles) : null;
                 const assistantData = Array.isArray(item.assistant_id) ? item.assistant_id[0] : item.assistant_id;
-                const rawAssistantProfile = assistantData?.profiles
-                    ? (Array.isArray(assistantData.profiles) ? assistantData.profiles[0] : assistantData.profiles)
-                    : null;
+                const rawAssistantProfile = assistantData?.profiles ? (Array.isArray(assistantData.profiles) ? assistantData.profiles[0] : assistantData.profiles) : null;
 
-                // 3. Normalization Helper
                 const createNormalizedProfile = (profile: any) => {
                     if (!profile) return null;
-                    const fName = profile.first_name || profile.firstName || "";
-                    const lName = profile.last_name || profile.lastName || "";
-                    const avatar = profile.pfp || "";
-
                     return {
-                        first_name: fName,
-                        last_name: lName,
-                        firstName: fName,
-                        lastName: lName,
-                        pfp: avatar
+                        firstName: profile.first_name || profile.firstName || "",
+                        lastName: profile.last_name || profile.lastName || "",
+                        pfp: profile.pfp || ""
                     };
                 };
 
                 const primaryProfile = createNormalizedProfile(rawStudentProfile);
                 const assistantProfile = createNormalizedProfile(rawAssistantProfile);
 
-                // A. Push Primary Clinician
                 if (primaryProfile) {
                     flattenedList.push({
                         request_id: item.request_id,
-                        shift: item.shift,
+                        attendance_id: null,
+                        shift: item.shift === 'Morning' || item.shift === 'AM' ? 'AM' : 'PM',
+                        section_name: sectionName,
                         unique_key: `${item.request_id}-primary-${primaryProfile.lastName}`,
                         display_profile: primaryProfile,
                         current_attendance: primaryStatus,
                         attendance_reason: primaryReason,
-                        isAssistant: false
-                    });
-                }
-
-                // B. Push Assistant if they exist
-                if (assistantProfile) {
-                    flattenedList.push({
-                        request_id: item.request_id,
-                        shift: item.shift,
-                        unique_key: `${item.request_id}-assistant-${assistantProfile.lastName}`,
-                        display_profile: assistantProfile,
-                        current_attendance: assistantStatus,
-                        attendance_reason: assistantReason,
-                        isAssistant: true
+                        isAssistant: false,
+                        assistant: assistantProfile ? {
+                            unique_key: `${item.request_id}-assistant-${assistantProfile.lastName}`,
+                            display_profile: assistantProfile,
+                            current_attendance: assistantStatus,
+                            attendance_reason: assistantReason,
+                        } : null
                     });
                 }
             });
-
-            setAttendanceList(flattenedList);
-
-        } else if (error) {
-            console.error("Fetch Error:", error.message);
         }
+
+        const { data: standaloneManualData, error: manualErr } = await supabase
+            .from('attendance')
+            .select(`
+                attendance_id, status, reason, date, shift,
+                student_id (first_name, last_name, pfp),
+                sections (section_name, room_id)
+            `)
+            .eq('date', formattedDate)
+            .is('request_id', null);
+
+        if (!manualErr && standaloneManualData) {
+            const filteredManualRows = standaloneManualData.filter((m: any) => Number(m.sections?.room_id) === Number(roomId));
+
+            filteredManualRows.forEach((m: any) => {
+                const profile = Array.isArray(m.student_id) ? m.student_id[0] : m.student_id;
+                if (!profile) return;
+
+                flattenedList.push({
+                    request_id: null,
+                    attendance_id: m.attendance_id,
+                    shift: m.shift,
+                    section_name: m.sections?.section_name || "",
+                    unique_key: `manual-${m.attendance_id}-${profile.last_name}`,
+                    display_profile: {
+                        firstName: profile.first_name || "",
+                        lastName: profile.last_name || "",
+                        pfp: profile.pfp || ""
+                    },
+                    current_attendance: m.status,
+                    attendance_reason: m.reason,
+                    isAssistant: false,
+                    assistant: null
+                });
+            });
+        }
+
+        setAttendanceList(flattenedList);
         setLoading(false);
     };
 
     const handleRoomClick = (room: RoomItem) => {
         setSelectedRoom({ id: room.room_id, name: room.room_name });
+        setFilterShift("All");
+        setFilterSection("All");
         fetchAttendance(room.room_id);
         setView('list');
     };
 
-    const handleOpenDialog = (requestId: number, status: 'Present' | 'Absent', isAssistant: boolean) => {
-        setActiveAction({ requestId, status, isAssistant });
-
-        if (isAssistant) {
-            setReason("Assistant");
-        } else {
-            setReason("");
-        }
-
-        setCustomReason("");
-        setDialogOpen(true);
-    };
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
-        setActiveAction(null);
+    const handleOpenConfirmDialog = (requestId: number | null, status: 'Present' | 'Absent', isAssistant: boolean, attendanceId?: number) => {
+        setActiveAction({ requestId, status, isAssistant, attendanceId });
+        setConfirmDialogOpen(true);
     };
 
     const handleAttendanceAction = async () => {
         if (!activeAction) return;
-        const { requestId, status } = activeAction;
+        const { requestId, status, isAssistant, attendanceId } = activeAction;
+        const finalRemarks = isAssistant ? "Assistant" : "Regular Duty";
 
-        const targetedItem = attendanceList.find(
-            item => item.request_id === requestId &&
-                (activeAction.isAssistant ? item.isAssistant : !item.isAssistant)
-        );
-
-        const finalRemarks = targetedItem?.isAssistant ? "Assistant" : (reason === "Others" ? customReason : reason);
-
-        const { error } = await supabase
-            .from('attendance')
-            .upsert(
-                {
-                    request_id: requestId,
-                    status: status,
-                    reason: finalRemarks
-                },
-                { onConflict: 'request_id, reason' }
-            );
-
-        if (error) {
-            alert("Error saving attendance entry: " + error.message);
+        if (requestId === null && attendanceId) {
+            await supabase
+                .from('attendance')
+                .update({ status: status, reason: finalRemarks })
+                .eq('attendance_id', attendanceId);
         } else {
-            handleCloseDialog();
-            if (selectedRoom) await fetchAttendance(selectedRoom.id);
+            await supabase
+                .from('attendance')
+                .upsert(
+                    { request_id: requestId, status: status, reason: finalRemarks },
+                    { onConflict: 'request_id, reason' }
+                );
         }
+
+        setConfirmDialogOpen(false);
+        setActiveAction(null);
+        if (selectedRoom) await fetchAttendance(selectedRoom.id);
+        await fetchDashboardMetrics();
     };
 
     const handleManualSubmit = async () => {
         setLoading(true);
         try {
-            const matchedSection = sections.find(s => s.room_id === Number(manualForm.roomId));
-            const finalSectionId = matchedSection ? matchedSection.section_id : null;
+            const finalRemarks = manualForm.reason === "Others" ? manualForm.customReason : manualForm.reason;
 
-            const { data: assignmentData, error: primaryAssignErr } = await supabase
-                .from('dental_chairs_request_assignment')
+            const { error: insertErr } = await supabase
+                .from('attendance')
                 .insert({
-                    student_id: manualForm.studentId,
-                    date: manualForm.date,
-                    shift: manualForm.shift,
-                    status: 'Accepted',
-                    section_id: finalSectionId
-                })
-                .select().single();
-
-            if (primaryAssignErr) throw primaryAssignErr;
-
-            if (assignmentData) {
-                await supabase.from('attendance').insert({
-                    request_id: assignmentData.request_id,
+                    request_id: null,
                     status: manualForm.status,
-                    reason: "Manually Added Entry"
+                    reason: finalRemarks,
+                    student_id: manualForm.studentId,
+                    section_id: manualForm.sectionId ? Number(manualForm.sectionId) : null,
+                    date: manualForm.date,
+                    shift: manualForm.shift
                 });
 
-                const { data: clinicianData, error: clinicianErr } = await supabase
-                    .from('clinician')
-                    .select('assistant_id')
-                    .eq('clinician_id', manualForm.studentId)
-                    .maybeSingle();
-
-                if (!clinicianErr && clinicianData?.assistant_id) {
-                    const { data: assistantAssignData, error: assistantAssignErr } = await supabase
-                        .from('dental_chairs_request_assignment')
-                        .insert({
-                            student_id: clinicianData.assistant_id,
-                            date: manualForm.date,
-                            shift: manualForm.shift,
-                            status: 'Accepted',
-                            section_id: finalSectionId
-                        })
-                        .select().single();
-
-                    if (!assistantAssignErr && assistantAssignData) {
-                        await supabase.from('attendance').insert({
-                            request_id: assistantAssignData.request_id,
-                            status: manualForm.status,
-                            reason: "Assistant"
-                        });
-                    }
-                }
-            }
+            if (insertErr) throw insertErr;
 
             setManualDialogOpen(false);
             setManualForm({
-                studentId: "", roomId: "", sectionId: "",
-                date: dayjs().format('YYYY-MM-DD'), shift: "", status: "Present"
+                studentId: "", roomId: "", sectionId: "", date: dayjs().format('YYYY-MM-DD'), shift: "AM", status: "Present", reason: "Case Discussion", customReason: ""
             });
+
+            // --- 3. TRIGGER TOAST NOTIFICATION ON SUCCESS ---
+            setToast({
+                open: true,
+                message: "Attendance entry added successfully!",
+                severity: "success"
+            });
+
             if (selectedRoom) await fetchAttendance(selectedRoom.id);
+            await fetchDashboardMetrics();
         } catch (error: any) {
-            alert("Error processing manual entry setup: " + error.message);
+            // Trigger failure message if database constraint flags an error
+            setToast({
+                open: true,
+                message: "Failed to add log: " + error.message,
+                severity: "error"
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCompileReportData = async () => {
-        setLoading(true);
-        let dynamicHTMLContent = "";
-
-        try {
-            if (reportType === 'batch') {
-                if (!selectedBatchId) {
-                    alert("Please select a student batch.");
-                    setLoading(false);
-                    return;
-                }
-
-                const startOfWeek = dayjs(reportWeekStart).format('YYYY-MM-DD');
-                const endOfWeek = dayjs(reportWeekStart).add(4, 'day').format('YYYY-MM-DD');
-                const targetBatchObj = batches.find(b => b.id === selectedBatchId);
-                const batchLabelText = targetBatchObj ? targetBatchObj.label : `Group ID: ${selectedBatchId}`;
-
-                const { data: groupClinicians, error: clinicianErr } = await supabase
-                    .from('clinician')
-                    .select('clinician_id')
-                    .eq('group_id', selectedBatchId);
-
-                if (clinicianErr) throw clinicianErr;
-                const studentIdsInGroup = groupClinicians?.map(c => c.clinician_id) || [];
-
-                const { data: groupProfiles, error: profilesErr } = await supabase
-                    .from('profiles')
-                    .select('profile_id, first_name, last_name')
-                    .in('profile_id', studentIdsInGroup.length > 0 ? studentIdsInGroup : ["00000000-0000-0000-0000-000000000000"]);
-
-                if (profilesErr) throw profilesErr;
-
-                const { data: logs, error: logErr } = await supabase
-                    .from('dental_chairs_request_assignment')
-                    .select(`
-                        student_id, shift, section_id,
-                        sections (section_name),
-                        attendance!inner (status)
-                    `)
-                    .gte('date', startOfWeek)
-                    .lte('date', endOfWeek)
-                    .eq('status', 'Accepted')
-                    .eq('attendance.status', 'Present')
-                    .in('student_id', studentIdsInGroup.length > 0 ? studentIdsInGroup : ["00000000-0000-0000-0000-000000000000"]);
-
-                if (logErr) throw logErr;
-
-                const calculationMap: Record<string, any> = {};
-                const roomTotals: Record<string, number> = {};
-                targetedColumns.forEach(col => { roomTotals[col] = 0; });
-                let overallWeeklySum = 0;
-
-                groupProfiles?.forEach(p => {
-                    calculationMap[p.profile_id] = {
-                        name: `${p.last_name?.toUpperCase()}, ${p.first_name}`,
-                        total: 0
-                    };
-                    targetedColumns.forEach(col => { calculationMap[p.profile_id][col] = 0; });
-                });
-
-                if (logs) {
-                    logs.forEach((row: any) => {
-                        const studentId = row.student_id;
-                        if (!calculationMap[studentId]) return;
-
-                        let rawSectionName = row.sections?.section_name?.toUpperCase() || "";
-                        if (rawSectionName === "COMPLETE DENTURE") rawSectionName = "PROSTHO";
-
-                        const matchedColumn = targetedColumns.find(c => c === rawSectionName || rawSectionName.startsWith(c));
-                        const scoreValue = 0.5;
-
-                        if (matchedColumn) {
-                            calculationMap[studentId][matchedColumn] += scoreValue;
-                            calculationMap[studentId].total += scoreValue;
-                            roomTotals[matchedColumn] += scoreValue;
-                            overallWeeklySum += scoreValue;
-                        }
-                    });
-                }
-
-                const sortedOutputRows = Object.values(calculationMap).sort((a: any, b: any) => a.name.localeCompare(b.name));
-
-                let dataRowsHTML = sortedOutputRows.map((student: any, index) => `
-                    <tr>
-                        <td style="padding: 4px; border: 1px solid #000; font-weight:bold; font-size:9px;">${index + 1}</td>
-                        <td style="padding: 4px; border: 1px solid #000; text-align: left; font-weight: 600; padding-left:4px; font-size:9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${student.name}</td>
-                        ${targetedColumns.map(col => `<td style="padding: 4px; border: 1px solid #000; font-weight:500; font-size:9px;">${student[col] > 0 ? student[col] : ""}</td>`).join("")}
-                        <td style="padding: 4px; border: 1px solid #000; color: #d32f2f; font-weight: bold; background: #fff5f5; font-size:9px;">${student.total > 0 ? student.total : "0"}</td>
-                    </tr>
-                `).join("");
-
-                let totalFooterHTML = `
-                    <tr style="background-color: #f7fafc; font-weight: bold;">
-                        <td colspan="2" style="padding: 5px; border: 1px solid #000; text-align: right; padding-right:8px; font-size:9px;">TOTAL</td>
-                        ${targetedColumns.map(col => `<td style="padding: 5px; border: 1px solid #000; font-size:9px;">${roomTotals[col] > 0 ? roomTotals[col] : ""}</td>`).join("")}
-                        <td style="padding: 5px; border: 1px solid #000; color: #d32f2f; font-weight: bold; background: #fff5f5; font-size:9px;">${overallWeeklySum > 0 ? overallWeeklySum : ""}</td>
-                    </tr>
-                `;
-
-                dynamicHTMLContent = `
-                    <div class="portrait-mode-container" style="padding: 0; font-family: Arial, sans-serif; width: 100%;">
-                        <div style="margin-bottom: 8px; text-align: center;">
-                            <h3 style="margin: 0; font-size: 12px; font-weight: bold; letter-spacing:0.5px;">CLINIC ATTENDANCE SUMMARY</h3>
-                            <div style="font-size: 10px; font-weight: 600; margin-top: 2px;">WEEK ${dayjs(startOfWeek).format('w')} | ${dayjs(startOfWeek).format('MMM DD')} - ${dayjs(endOfWeek).format('MMM DD, YYYY')}</div>
-                        </div>
-                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 9px; table-layout: fixed;">
-                            <thead>
-                                <tr style="background-color: #ffffff; color: #000;">
-                                    <th style="padding: 4px 2px; border: 1px solid #000; width: 6%;">#</th>
-                                    <th style="padding: 4px; border: 1px solid #000; text-align: left; width: 34%; font-weight:bold; font-size:10px;">${batchLabelText.toUpperCase()}</th>
-                                    ${targetedColumns.map(col => `<th style="padding: 4px 2px; border: 1px solid #000; width: 8%; font-weight:bold;">${col}</th>`).join("")}
-                                    <th style="padding: 4px 2px; border: 1px solid #000; width: 12%; font-weight:bold;">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${dataRowsHTML || '<tr><td colspan="10" style="padding: 20px; color:#718096;">No records found.</td></tr>'}
-                                ${dataRowsHTML ? totalFooterHTML : ''}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            } else {
-                const totalDays = dayjs(reportMonth).daysInMonth();
-                let rowHTMLBuilder = "";
-                const monthlyRoomTotals: Record<string, number> = {};
-                targetedColumns.forEach(col => { monthlyRoomTotals[col] = 0; });
-                let runningGrandTotal = 0;
-
-                for (let day = 1; day <= totalDays; day++) {
-                    const loopDate = dayjs(`${reportMonth}-${day}`).format('YYYY-MM-DD');
-                    const { data } = await supabase
-                        .from('dental_chairs_request_assignment')
-                        .select(`shift, sections (section_name), attendance!inner (status)`)
-                        .eq('date', loopDate)
-                        .eq('status', 'Accepted')
-                        .eq('attendance.status', 'Present');
-
-                    ['AM', 'PM'].forEach(shiftName => {
-                        let rowSum = 0;
-                        let roomCellsHTML = targetedColumns.map(col => {
-                            const matchCount = data?.filter(d => {
-                                let itemSecName = d.sections?.section_name?.toUpperCase() || "";
-                                if (itemSecName === "COMPLETE DENTURE") itemSecName = "PROSTHO";
-
-                                const isCorrectRoom = itemSecName === col || itemSecName.startsWith(col);
-                                const isCorrectShift = (shiftName === 'AM' && (d.shift === 'Morning' || d.shift === 'AM')) ||
-                                    (shiftName === 'PM' && (d.shift === 'Afternoon' || d.shift === 'PM'));
-                                return isCorrectRoom && isCorrectShift;
-                            }).length || 0;
-
-                            const computedPoints = matchCount * 0.5;
-                            rowSum += computedPoints;
-                            monthlyRoomTotals[col] += computedPoints;
-                            return `<td style="padding: 3px; border: 1px solid #000; font-size: 8.5px;">${computedPoints || ""}</td>`;
-                        }).join("");
-
-                        runningGrandTotal += rowSum;
-                        rowHTMLBuilder += `
-                            <tr style="height:18px;">
-                                ${shiftName === 'AM' ? `<td rowspan="2" style="font-weight:bold; border: 1px solid #000; text-align:center; font-size:9px; background:#fbfbfb;">${day}</td>` : ''}
-                                <td style="padding: 3px; border: 1px solid #000; font-size:8px; font-weight:bold; background:#fafafa;">${shiftName}</td>
-                                ${roomCellsHTML}
-                                <td style="padding: 3px; border: 1px solid #000; font-weight:bold; font-size: 8.5px; background: #fff5f5;">${rowSum || ""}</td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                dynamicHTMLContent = `
-                    <div class="portrait-mode-container" style="padding: 0; font-family: Arial, sans-serif; width: 100%;">
-                        <div style="text-align:center; margin-bottom: 8px;">
-                            <h2 style="margin: 0; font-size: 13px; font-weight: bold; letter-spacing:0.5px;">CHAIR USAGE REPORT</h2>
-                            <div style="margin-top: 2px; font-size: 10px; font-weight:bold; color: #444;">MONTH: ${dayjs(reportMonth).format('MMMM YYYY').toUpperCase()}</div>
-                        </div>
-                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5px; table-layout: fixed;">
-                            <thead>
-                                <tr style="background: #ffffff; font-weight:bold;">
-                                    <th style="padding: 4px 2px; border: 1px solid #000; width: 10%;">DAY</th>
-                                    <th style="padding: 4px 2px; border: 1px solid #000; width: 10%;">SHIFT</th>
-                                    ${targetedColumns.map(col => `<th style="padding: 4px 2px; border: 1px solid #000; width: 10%; font-size:9px;">${col}</th>`).join("")}
-                                    <th style="padding: 4px 2px; border: 1px solid #000; width: 10%; font-size:8px; font-weight:bold; line-height:1.1;">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rowHTMLBuilder}
-                                <tr style="font-weight: bold; height:20px; background:#f7fafc;">
-                                    <td colspan="2" style="padding: 4px; border: 1px solid #000; text-align:center; font-size:9px;">GRAND TOTAL</td>
-                                    ${targetedColumns.map(col => `<td style="padding: 4px; border: 1px solid #000; font-size:9px;">${monthlyRoomTotals[col] || ""}</td>`).join("")}
-                                    <td style="padding: 4px; border: 1px solid #000; font-weight:bold; font-size:9px; background: #fff5f5; color: #d32f2f;">${runningGrandTotal || ""}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
-
-            setPreviewHtml(dynamicHTMLContent);
-            setReportDialogOpen(false);
-            setPreviewOpen(true);
-        } catch (err: any) {
-            alert("Failed to build report view: " + err.message);
-        } finally {
-            setLoading(false);
-        }
+    const handleCloseToast = () => {
+        setToast((prev) => ({ ...prev, open: false }));
     };
 
-    const triggerSystemPrintEngine = () => {
-        const targetElement = document.getElementById("printable-canvas-area");
-        if (!targetElement) return;
+    const renderCalendar = () => {
+        const usagePercentage = totalChairsCount > 0 ? Math.round((activeChairsCount / totalChairsCount) * 100) : 0;
 
-        const printFrame = document.createElement("iframe");
-        printFrame.style.position = "fixed";
-        printFrame.style.right = "0";
-        printFrame.style.bottom = "0";
-        printFrame.style.width = "0";
-        printFrame.style.height = "0";
-        printFrame.style.border = "0";
-
-        document.body.appendChild(printFrame);
-        const frameDoc = printFrame.contentWindow?.document || printFrame.contentDocument;
-        if (frameDoc) {
-            frameDoc.write(`
-                <html>
-                <head>
-                    <style>
-                        @page { 
-                            size: portrait !important; 
-                            margin: 10mm 8mm 10mm 8mm !important; 
-                        }
-                        html, body { 
-                            margin: 0 !important; 
-                            padding: 0 !important; 
-                            font-family: Arial, sans-serif !important; 
-                            width: 100% !important;
-                            background: #fff !important;
-                        }
-                        .portrait-mode-container {
-                            width: 100% !important;
-                            max-width: 100% !important;
-                            display: block !important;
-                        }
-                        table { 
-                            width: 100% !important; 
-                            border-collapse: collapse !important; 
-                            table-layout: fixed !important; 
-                        }
-                        th, td { 
-                            border: 1px solid #000 !important; 
-                            padding: 4px 2px !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                            word-wrap: break-word !important;
-                            -webkit-print-color-adjust: exact !important; 
-                            print-color-adjust: exact !important; 
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="portrait-mode-container">
-                        ${targetElement.innerHTML}
-                    </div>
-                </body>
-                </html>
-            `);
-            frameDoc.close();
-            setTimeout(() => {
-                printFrame.contentWindow?.focus();
-                printFrame.contentWindow?.print();
-                document.body.removeChild(printFrame);
-            }, 600);
-        }
-    };
-
-    const renderCalendar = () => (
-        <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 3, gap: 2 }}>
-                <Box>
-                    <Typography variant="h4" fontFamily="Poppins" sx={{ fontWeight: 700, color: '#493979' }}>
-                        Attendance
+        return (
+            <Box sx={{ p: 3 }}>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h4" fontFamily="Poppins" sx={{ fontWeight: 800, color: '#1e1b4b', tracking: '-0.5px' }}>
+                        Overview
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                        View, manage, and verify daily clinician clock-in records and shift statuses.
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mt: 0.25 }}>
+                        {dayjs().format('dddd, MMMM DD, YYYY')}
                     </Typography>
                 </Box>
 
-                {/*<Button*/}
-                {/*    variant="contained"*/}
-                {/*    onClick={() => setReportDialogOpen(true)}*/}
-                {/*    sx={{ bgcolor: '#5c51b6', textTransform: 'none', fontWeight: 600, borderRadius: 2 }}*/}
-                {/*    startIcon={<AssessmentIcon />}*/}
-                {/*>*/}
-                {/*    Generate Report*/}
-                {/*</Button>*/}
-            </Box>
+                <Box sx={{ display: 'flex', gap: 1.5, mb: 2.5, width: '100%', flexDirection: 'row' }}>
+                    <Paper elevation={0} sx={{ flex: 1, p: 1.5, borderRadius: 4, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Box sx={{ p: 0.8, bgcolor: '#ffffff', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 2px 6px rgba(0,0,0,0.03)', mb: 1.5 }}>
+                            <ChairIcon sx={{ color: '#2563eb', fontSize: '1.2rem' }} />
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem', mb: 0.25 }}>
+                            Active Chairs
+                        </Typography>
+                        <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 800, fontFamily: 'Poppins', mb: 0.25 }}>
+                            {activeChairsCount}/{totalChairsCount}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.7rem' }}>
+                            {usagePercentage}% Usage
+                        </Typography>
+                    </Paper>
 
-            <Box sx={{ position: 'relative', width: '100%' }}>
-                <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, px: 0.5, fontWeight: 500 }}>
-                    Scroll horizontally to change target date:
-                </Typography>
+                    <Paper elevation={0} sx={{ flex: 1, p: 1.5, borderRadius: 4, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Box sx={{ p: 0.8, bgcolor: '#ffffff', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 2px 6px rgba(0,0,0,0.03)', mb: 1.5 }}>
+                            <PeopleIcon sx={{ color: '#9333ea', fontSize: '1.2rem' }} />
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem', mb: 0.25 }}>
+                            Students
+                        </Typography>
+                        <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 800, fontFamily: 'Poppins', mb: 0.25 }}>
+                            {presentStudentsCount}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.7rem' }}>
+                            Verified Present
+                        </Typography>
+                    </Paper>
+                </Box>
 
-                <Box sx={{
-                    display: 'flex', gap: 2, overflowX: 'auto', pb: 3, px: 0.5,
-                    position: 'relative',
-                    zIndex: 1,
-                    '&::-webkit-scrollbar': { display: 'none' },
-                    maskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)',
-                    WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)'
-                }}>
-                    {[...Array(14)].map((_, i) => {
-                        const date = dayjs().add(i - 3, 'day');
-                        const isSelected = date.isSame(selectedDate, 'day');
-                        const isToday = date.isSame(dayjs(), 'day');
-                        const dateStr = date.format('YYYY-MM-DD');
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 4, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', mb: 3 }}>
+                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem', display: 'block', mb: 1.5 }}>
+                        Weekly Attendance Overview
+                    </Typography>
+                    <Box sx={{ width: '100%', height: 140 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={weeklyChartData} margin={{ top: 0, right: 5, left: -25, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} allowDecimals={false} />
+                                <Tooltip cursor={{ fill: 'rgba(226, 232, 240, 0.4)' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', fontFamily: 'Poppins' }} />
+                                <Bar dataKey="Present" fill="#5c51b6" radius={[4, 4, 0, 0]} barSize={24} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </Box>
+                </Paper>
 
-                        return (
-                            <Box
-                                key={i}
-                                ref={(el) => (dateListRef.current[dateStr] = el)}
-                                sx={{ minWidth: 65 }}
-                            >
-                                <Paper
-                                    elevation={isSelected ? 4 : 0}
-                                    onClick={() => setSelectedDate(date)}
-                                    sx={{
-                                        width: '100%', py: 2, textAlign: 'center', cursor: 'pointer', borderRadius: 4,
-                                        bgcolor: isSelected ? '#5c51b6' : 'white', color: isSelected ? 'white' : '#666',
-                                        border: isSelected ? 'none' : '1px solid #eee', transition: '0.2s all ease-in-out',
-                                        '&:hover': { transform: 'translateY(-2px)' }
-                                    }}
-                                >
-                                    <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>{date.format('ddd')}</Typography>
-                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{date.format('DD')}</Typography>
-                                    {isToday && !isSelected && <Box sx={{ width: 4, height: 4, bgcolor: '#5c51b6', borderRadius: '50%', mx: 'auto', mt: 0.5 }} />}
-                                </Paper>
-                            </Box>
-                        );
-                    })}
+                <Divider sx={{ mb: 3, borderColor: '#231b3a', borderWidth: '1px' }} />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 2.5, gap: 1 }}>
+                    <Box>
+                        <Typography variant="h5" fontFamily="Poppins" sx={{ fontWeight: 700, color: '#493979' }}>
+                            Attendance
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
+                            View, manage, and verify daily clinician clock-in records and shift statuses.
+                        </Typography>
+                    </Box>
+                </Box>
+
+                <Box sx={{ position: 'relative', width: '100%' }}>
+                    <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, px: 0.5, fontWeight: 500 }}>
+                        Scroll horizontally to change target date:
+                    </Typography>
+
+                    <Box sx={{
+                        display: 'flex', gap: 1.5, overflowX: 'auto', pb: 2, px: 0.5, position: 'relative', zIndex: 1,
+                        '&::-webkit-scrollbar': { display: 'none' },
+                        maskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)',
+                        WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)'
+                    }}>
+                        {[...Array(14)].map((_, i) => {
+                            const date = dayjs().add(i - 3, 'day');
+                            const isSelected = date.isSame(selectedDate, 'day');
+                            const isToday = date.isSame(dayjs(), 'day');
+                            const dateStr = date.format('YYYY-MM-DD');
+
+                            return (
+                                <Box key={i} ref={(el) => (dateListRef.current[dateStr] = el)} sx={{ minWidth: 55 }}>
+                                    <Paper
+                                        elevation={isSelected ? 3 : 0} onClick={() => setSelectedDate(date)}
+                                        sx={{
+                                            width: '100%', py: 1.5, textAlign: 'center', cursor: 'pointer', borderRadius: 3,
+                                            bgcolor: isSelected ? '#5c51b6' : 'white', color: isSelected ? 'white' : '#666',
+                                            border: isSelected ? 'none' : '1px solid #eee', transition: '0.2s all ease-in-out',
+                                            '&:hover': { transform: 'translateY(-2px)' }
+                                        }}
+                                    >
+                                        <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.7rem' }}>{date.format('ddd')}</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{date.format('DD')}</Typography>
+                                        {isToday && !isSelected && <Box sx={{ width: 4, height: 4, bgcolor: '#5c51b6', borderRadius: '50%', mx: 'auto', mt: 0.5 }} />}
+                                    </Paper>
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Button variant="contained" fullWidth onClick={() => setView('rooms')} sx={{ bgcolor: '#5c51b6', py: 1.5, borderRadius: 3, textTransform: 'none', fontWeight: 700, fontSize: '0.9rem' }}>
+                        View Rooms for {selectedDate.format('MMM DD')}
+                    </Button>
+                    <Button variant="contained" fullWidth onClick={() => setManualDialogOpen(true)} sx={{ bgcolor: '#493979', py: 1.2, borderRadius: 3, textTransform: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
+                        Create Manual Attendance Entry
+                    </Button>
                 </Box>
             </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Button variant="contained" fullWidth onClick={() => setView('rooms')} sx={{ bgcolor: '#5c51b6', py: 2, borderRadius: 4, textTransform: 'none', fontWeight: 700 }}>
-                    View Rooms for {selectedDate.format('MMM DD')}
-                </Button>
-                <Button variant="outlined" fullWidth onClick={() => setManualDialogOpen(true)} sx={{ color: '#5c51b6', borderColor: '#5c51b6', py: 1.5, borderRadius: 4, textTransform: 'none', fontWeight: 600 }}>
-                    Create Manual Attendance Entry
-                </Button>
-            </Box>
-        </Box>
-    );
+        );
+    };
 
     const renderRooms = () => (
         <Box sx={{ p: 0 }}>
@@ -742,108 +542,179 @@ const Attendance: React.FC = () => {
         </Box>
     );
 
-    const renderAttendanceList = () => (
-        <Box>
-            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                <IconButton onClick={() => setView('rooms')}><ArrowBackIcon /></IconButton>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    {selectedRoom?.name} - {selectedDate.format('MMM DD')}
-                </Typography>
-            </Box>
+    const renderAttendanceList = () => {
+        const roomSpecificSections = sections.filter(sec => Number(sec.room_id) === Number(selectedRoom?.id));
 
-            <Box sx={{ px: 3 }}>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
-                ) : attendanceList.length > 0 ? (
-                    <List>
-                        {attendanceList.map((req) => (
-                            <ListItem key={req.unique_key} sx={{ px: 0, py: 2, borderBottom: '1px solid #eee' }}>
-                                <ListItemAvatar>
-                                    <Avatar src={req.display_profile?.pfp} />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary={
-                                        <Typography
-                                            variant="body1"
-                                            sx={{
-                                                fontWeight: 700,
-                                                color: '#493979' // Bold and dark purple name text
-                                            }}
-                                        >
-                                            {`${req.display_profile?.firstName} ${req.display_profile?.lastName}`}
-                                        </Typography>
-                                    }
-                                    secondary={
-                                        <Box component="span" sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
-                                            <Typography component="span" variant="body2" color="text.secondary">
-                                                Shift: {req.shift}
-                                            </Typography>
-                                            {req.current_attendance && req.attendance_reason && (
-                                                <Typography
-                                                    component="span"
-                                                    variant="caption"
-                                                    sx={{
-                                                        color: '#6b7280', // Same clean gray formatting for all remarks
-                                                        fontWeight: 600,
-                                                        mt: 0.25,
-                                                        fontStyle: 'italic'
-                                                    }}
-                                                >
-                                                    Remarks: {req.attendance_reason}
+        const filteredAttendance = attendanceList.filter((item) => {
+            const matchShift = filterShift === "All" || item.shift === filterShift;
+            const matchSection = filterSection === "All" || item.section_name === filterSection;
+            return matchShift && matchSection;
+        });
+
+        return (
+            <Box>
+                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <IconButton onClick={() => setView('rooms')}><ArrowBackIcon /></IconButton>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        {selectedRoom?.name} - {selectedDate.format('MMM DD')}
+                    </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, px: 3, mb: 2, width: '100%' }}>
+                    <FormControl size="small" fullWidth sx={{ flex: 1 }}>
+                        <InputLabel>Shift</InputLabel>
+                        <Select
+                            value={filterShift} label="Shift"
+                            onChange={(e) => setFilterShift(e.target.value)}
+                            sx={{ borderRadius: 2, height: 40 }}
+                        >
+                            <MenuItem value="All">All Shifts</MenuItem>
+                            <MenuItem value="AM">AM Only</MenuItem>
+                            <MenuItem value="PM">PM Only</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" fullWidth sx={{ flex: 1 }}>
+                        <InputLabel>Section</InputLabel>
+                        <Select
+                            value={filterSection} label="Section"
+                            onChange={(e) => setFilterSection(e.target.value)}
+                            sx={{ borderRadius: 2, height: 40 }}
+                        >
+                            <MenuItem value="All">All Sections</MenuItem>
+                            {roomSpecificSections.map((sec) => (
+                                <MenuItem key={sec.section_id} value={sec.section_name}>
+                                    {sec.section_name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
+
+                <Box sx={{ px: 3 }}>
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
+                    ) : filteredAttendance.length > 0 ? (
+                        <List>
+                            {filteredAttendance.map((req) => (
+                                <React.Fragment key={req.unique_key}>
+                                    <ListItem sx={{ px: 0, py: 2, borderBottom: req.assistant ? 'none' : '1px solid #eee' }}>
+                                        <ListItemAvatar>
+                                            <Avatar src={req.display_profile?.pfp} />
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
+                                                <Typography variant="body1" sx={{ fontWeight: 700, color: '#493979' }}>
+                                                    {`${req.display_profile?.firstName} ${req.display_profile?.lastName}`}
                                                 </Typography>
+                                            }
+                                            secondary={
+                                                <Box component="span" sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
+                                                    {req.section_name && (
+                                                        <Typography component="span" variant="body2" sx={{ color: '#1e1b4b', fontWeight: 600 }}>
+                                                            Section: {req.section_name}
+                                                        </Typography>
+                                                    )}
+                                                    <Typography component="span" variant="body2" color="text.secondary">
+                                                        Shift: {req.shift}
+                                                    </Typography>
+                                                    {req.current_attendance && req.attendance_reason && (
+                                                        <Typography component="span" variant="caption" sx={{ color: '#6b7280', fontWeight: 600, mt: 0.25, fontStyle: 'italic' }}>
+                                                            Remarks: {req.attendance_reason}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            }
+                                        />
+                                        {req.current_attendance ? (
+                                            <Chip
+                                                label={req.current_attendance} variant="filled"
+                                                sx={{ fontWeight: 600, borderRadius: 2, minWidth: 80, bgcolor: req.current_attendance === 'Present' ? '#5c51b6' : '#d32f2f', color: 'white' }}
+                                            />
+                                        ) : (
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                <Button
+                                                    variant="outlined" size="small"
+                                                    onClick={() => handleOpenConfirmDialog(req.request_id, 'Present', false, req.attendance_id)}
+                                                    sx={{ textTransform: 'none', borderRadius: 2, color: '#5c51b6', borderColor: '#5c51b6' }}
+                                                >
+                                                    Present
+                                                </Button>
+                                                <Button
+                                                    variant="outlined" size="small" color="error"
+                                                    onClick={() => handleOpenConfirmDialog(req.request_id, 'Absent', false, req.attendance_id)}
+                                                    sx={{ textTransform: 'none', borderRadius: 2, color: '#d32f2f', borderColor: '#d32f2f' }}
+                                                >
+                                                    Absent
+                                                </Button>
+                                            </Box>
+                                        )}
+                                    </ListItem>
+
+                                    {req.assistant && (
+                                        <ListItem sx={{ pl: 4, py: 1.5, pb: 2, borderBottom: '1px solid #eee', bgcolor: 'rgba(248, 250, 252, 0.6)' }}>
+                                            <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                                                <SubdirectoryArrowRightIcon sx={{ color: '#94a3b8', fontSize: '1.2rem' }} />
+                                            </Box>
+                                            <ListItemAvatar sx={{ minWidth: 44 }}>
+                                                <Avatar src={req.assistant.display_profile?.pfp} sx={{ width: 32, height: 32 }} />
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748b' }}>
+                                                        {`${req.assistant.display_profile?.firstName} ${req.assistant.display_profile?.lastName}`}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <Typography component="span" variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', fontSize: '0.65rem' }}>
+                                                            Role: Assistant
+                                                        </Typography>
+                                                        {req.assistant.current_attendance && req.assistant.attendance_reason && (
+                                                            <Typography component="span" variant="caption" sx={{ color: '#6b7280', fontWeight: 600, fontStyle: 'italic' }}>
+                                                                Remarks: {req.assistant.attendance_reason}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                }
+                                            />
+                                            {req.assistant.current_attendance ? (
+                                                <Chip
+                                                    label={req.assistant.current_attendance} size="small" variant="filled"
+                                                    sx={{ fontWeight: 600, borderRadius: 1.5, minWidth: 70, fontSize: '0.75rem', bgcolor: req.assistant.current_attendance === 'Present' ? '#7c3aed' : '#d32f2f', color: 'white' }}
+                                                />
+                                            ) : (
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    <Button
+                                                        variant="outlined" size="small"
+                                                        onClick={() => handleOpenConfirmDialog(req.request_id, 'Present', true, req.attendance_id)}
+                                                        sx={{ textTransform: 'none', borderRadius: 1.5, height: 26, fontSize: '0.75rem', color: '#7c3aed', borderColor: '#7c3aed' }}
+                                                    >
+                                                        Present
+                                                    </Button>
+                                                    <Button
+                                                        variant="outlined" size="small" color="error"
+                                                        onClick={() => handleOpenConfirmDialog(req.request_id, 'Absent', true, req.attendance_id)}
+                                                        sx={{ textTransform: 'none', borderRadius: 1.5, height: 26, fontSize: '0.75rem', color: '#d32f2f', borderColor: '#d32f2f' }}
+                                                    >
+                                                        Absent
+                                                    </Button>
+                                                </Box>
                                             )}
-                                        </Box>
-                                    }
-                                />
-                                {req.current_attendance ? (
-                                    <Chip
-                                        label={req.current_attendance} variant="filled"
-                                        sx={{ fontWeight: 600, borderRadius: 2, minWidth: 80, bgcolor: req.current_attendance === 'Present' ? '#5c51b6' : '#d32f2f', color: 'white' }}
-                                    />
-                                ) : (
-                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            onClick={() => handleOpenDialog(req.request_id, 'Present', req.isAssistant)}
-                                            sx={{ textTransform: 'none', borderRadius: 2, color: '#5c51b6', borderColor: '#5c51b6' }}
-                                        >
-                                            Present
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handleOpenDialog(req.request_id, 'Absent', req.isAssistant)}
-                                            sx={{ textTransform: 'none', borderRadius: 2, color: '#d32f2f', borderColor: '#d32f2f' }}
-                                        >
-                                            Absent
-                                        </Button>
-                                    </Box>
-                                )}
-                            </ListItem>
-                        ))}
-                    </List>
-                ) : (
-                    <Typography sx={{ textAlign: 'center', mt: 5, color: '#999' }}>No approved requests found.</Typography>
-                )}
+                                        </ListItem>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    ) : (
+                        <Typography sx={{ textAlign: 'center', mt: 5, color: '#999' }}>
+                            No rosters match your selected filter.
+                        </Typography>
+                    )}
+                </Box>
             </Box>
-        </Box>
-    );
-
-    // WATCH AND CENTER THE DATES:
-    useEffect(() => {
-        const dateKey = selectedDate.format('YYYY-MM-DD');
-        const selectedEl = dateListRef.current[dateKey];
-
-        if (selectedEl) {
-            selectedEl.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center',
-            });
-        }
-    }, [selectedDate]);
+        );
+    };
 
     return (
         <Box sx={{ minHeight: '100vh', mx: 'auto' }}>
@@ -851,100 +722,19 @@ const Attendance: React.FC = () => {
             {view === 'rooms' && renderRooms()}
             {view === 'list' && renderAttendanceList()}
 
-            {/* --- GENERATE REPORT CONFIGURATION POPUP MODAL --- */}
-            <Dialog open={reportDialogOpen} onClose={() => setReportDialogOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
-                <DialogTitle sx={{ fontWeight: 700 }}>Generate Chair Usage Report</DialogTitle>
-                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-                    <FormControl>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Select Report Scope:</Typography>
-                        <RadioGroup value={reportType} onChange={(e) => setReportType(e.target.value as 'batch' | 'overall')}>
-                            <FormControlLabel value="batch" control={<Radio color="secondary" />} label="Per Batch (Weekly Summary Layout)" />
-                            <FormControlLabel value="overall" control={<Radio color="secondary" />} label="Overall Chair Usage (Monthly Matrix Layout)" />
-                        </RadioGroup>
-                    </FormControl>
-
-                    {reportType === 'batch' ? (
-                        <>
-                            <FormControl fullWidth>
-                                <InputLabel>Select Student Batch / Group</InputLabel>
-                                <Select value={selectedBatchId} label="Select Student Batch / Group" onChange={(e) => setSelectedBatchId(e.target.value as number)}>
-                                    {batches.map((batch) => (
-                                        <MenuItem key={batch.id} value={batch.id}>{batch.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <TextField label="Choose Roster Week Start Date" type="date" fullWidth InputLabelProps={{ shrink: true }} value={reportWeekStart} onChange={(e) => setReportWeekStart(e.target.value)} />
-                        </>
-                    ) : (
-                        <TextField label="Select Target Operational Month" type="month" fullWidth InputLabelProps={{ shrink: true }} value={reportMonth} onChange={(e) => setReportMonth(e.target.value)} />
-                    )}
-                </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={() => setReportDialogOpen(false)} color="inherit">Cancel</Button>
-                    <Button
-                        onClick={handleCompileReportData}
-                        variant="contained"
-                        disabled={loading || (reportType === 'batch' && selectedBatchId === "")}
-                        sx={{ bgcolor: '#5c51b6', textTransform: 'none' }}
-                    >
-                        {loading ? <CircularProgress size={20} color="inherit" /> : "Prepare Preview"}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* --- IN-APP PRINT PREVIEW WINDOW --- */}
-            <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>Print Preview (Portrait Canvas)</Typography>
-                    <IconButton onClick={() => setPreviewOpen(false)}><CloseIcon /></IconButton>
-                </DialogTitle>
-                <DialogContent sx={{ p: 2, bgcolor: '#f4f6f8' }}>
-                    <Paper elevation={1} sx={{ p: 2, bgcolor: '#fff', minHeight: '400px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
-                        <div id="printable-canvas-area" dangerouslySetInnerHTML={{ __html: previewHtml }} />
-                    </Paper>
-                </DialogContent>
-                <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
-                    <Button onClick={() => setPreviewOpen(false)} color="inherit">Close Preview</Button>
-                    <Button onClick={triggerSystemPrintEngine} variant="contained" startIcon={<PrintIcon />} sx={{ bgcolor: '#493979', '&:hover': { bgcolor: '#3c2e65' } }}>
-                        Print / Save as PDF
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* --- REASON DIALOG MODAL --- */}
-            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-                <DialogTitle>Attendance Remarks</DialogTitle>
+            {/* --- SIMPLIFIED VERIFICATION CONFIRMATION BOX --- */}
+            <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+                <DialogTitle sx={{ fontWeight: 700 }}>Confirm Attendance Action</DialogTitle>
                 <DialogContent>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel id="attendance-reason-label">Reason</InputLabel>
-                        <Select
-                            labelId="attendance-reason-label"
-                            value={reason}
-                            label="Reason"
-                            onChange={(e) => setReason(e.target.value)}
-                            disabled={activeAction?.isAssistant}
-                        >
-                            {activeAction?.isAssistant ? (
-                                <MenuItem value="Assistant">Assistant</MenuItem>
-                            ) : (
-                                [
-                                    <MenuItem key="regular" value="Regular">Regular Duty</MenuItem>,
-                                    <MenuItem key="exam" value="Discussion">Case Discussion</MenuItem>,
-                                    <MenuItem key="others" value="Others">Others</MenuItem>
-                                ]
-                            )}
-                        </Select>
-                    </FormControl>
-                    {reason === "Others" && (
-                        <TextField
-                            fullWidth label="Specify Reason" sx={{ mt: 2 }}
-                            value={customReason} onChange={(e) => setCustomReason(e.target.value)}
-                        />
-                    )}
+                    <Typography variant="body1">
+                        Are you sure you want to mark this clinician as <strong>{activeAction?.status}</strong>? This action marks status under <em>{activeAction?.isAssistant ? "Assistant" : "Regular Duty"}</em>.
+                    </Typography>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
-                    <Button onClick={handleAttendanceAction} variant="contained" sx={{ bgcolor: '#5c51b6' }}>Submit</Button>
+                <DialogActions sx={{ pb: 2, px: 3 }}>
+                    <Button onClick={() => setConfirmDialogOpen(false)} color="inherit">Cancel</Button>
+                    <Button onClick={handleAttendanceAction} variant="contained" sx={{ bgcolor: '#5c51b6', textTransform: 'none' }}>
+                        Confirm Verify
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -954,58 +744,68 @@ const Attendance: React.FC = () => {
                 <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                     <FormControl fullWidth>
                         <InputLabel>Select Student</InputLabel>
-                        <Select
-                            value={manualForm.studentId} label="Select Student"
-                            onChange={(e) => setManualForm({ ...manualForm, studentId: e.target.value as string })}
-                        >
+                        <Select value={manualForm.studentId} label="Select Student" onChange={(e) => setManualForm({ ...manualForm, studentId: e.target.value as string })}>
                             {students.map((student) => (
-                                <MenuItem key={student.profile_id} value={student.profile_id}>
-                                    {student.first_name} {student.last_name}
-                                </MenuItem>
+                                <MenuItem key={student.profile_id} value={student.profile_id}>{student.first_name} {student.last_name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                     <FormControl fullWidth>
-                        <InputLabel>Select Room</InputLabel>
-                        <Select
-                            value={manualForm.roomId} label="Select Room"
-                            onChange={(e) => setManualForm({ ...manualForm, roomId: e.target.value as string })}
-                        >
-                            {rooms.map((room) => (
-                                <MenuItem key={room.room_id} value={room.room_id}>{room.room_name}</MenuItem>
+                        <InputLabel>Select Section</InputLabel>
+                        <Select value={manualForm.sectionId} label="Select Section" onChange={(e) => setManualForm({ ...manualForm, sectionId: e.target.value as string })}>
+                            {sections.map((sec) => (
+                                <MenuItem key={sec.section_id} value={sec.section_id}>{sec.section_name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField
-                        label="Date" type="date" fullWidth InputLabelProps={{ shrink: true }}
-                        value={manualForm.date} onChange={(e) => setManualForm({ ...manualForm, date: e.target.value })}
-                    />
+                    <TextField label="Date" type="date" fullWidth InputLabelProps={{ shrink: true }} value={manualForm.date} onChange={(e) => setManualForm({ ...manualForm, date: e.target.value })} />
                     <FormControl fullWidth>
                         <InputLabel>Shift</InputLabel>
-                        <Select
-                            value={manualForm.shift} label="Shift"
-                            onChange={(e) => setManualForm({ ...manualForm, shift: e.target.value as string })}
-                        >
-                            <MenuItem value="Morning">Morning (AM)</MenuItem>
-                            <MenuItem value="Afternoon">Afternoon (PM)</MenuItem>
+                        <Select value={manualForm.shift} label="Shift" onChange={(e) => setManualForm({ ...manualForm, shift: e.target.value as string })}>
+                            <MenuItem value="AM">AM</MenuItem>
+                            <MenuItem value="PM">PM</MenuItem>
                         </Select>
                     </FormControl>
                     <FormControl fullWidth>
                         <InputLabel>Status</InputLabel>
-                        <Select
-                            value={manualForm.status} label="Status"
-                            onChange={(e) => setManualForm({ ...manualForm, status: e.target.value as string })}
-                        >
+                        <Select value={manualForm.status} label="Status" onChange={(e) => setManualForm({ ...manualForm, status: e.target.value as string })}>
                             <MenuItem value="Present">Present</MenuItem>
                             <MenuItem value="Absent">Absent</MenuItem>
                         </Select>
                     </FormControl>
+                    <FormControl fullWidth>
+                        <InputLabel>Reason / Category</InputLabel>
+                        <Select value={manualForm.reason} label="Reason / Category" onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value as string })}>
+                            <MenuItem value="Case Discussion">Case Discussion</MenuItem>
+                            <MenuItem value="Others">Others</MenuItem>
+                        </Select>
+                    </FormControl>
+                    {manualForm.reason === "Others" && (
+                        <TextField fullWidth label="Specify Reason Description" value={manualForm.customReason} onChange={(e) => setManualForm({ ...manualForm, customReason: e.target.value })} />
+                    )}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setManualDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleManualSubmit} variant="contained" sx={{ bgcolor: '#5c51b6' }}>Add Entry</Button>
+                <DialogActions sx={{ pb: 2, px: 3 }}>
+                    <Button onClick={() => setManualDialogOpen(false)} color="inherit">Cancel</Button>
+                    <Button onClick={handleManualSubmit} variant="contained" sx={{ bgcolor: '#5c51b6', textTransform: 'none' }}>Add Attendance</Button>
                 </DialogActions>
             </Dialog>
+
+            {/* --- 4. SNACKBAR NOTIFICATION CONTAINER VIEW --- */}
+            <Snackbar
+                open={toast.open}
+                autoHideDuration={4000} // Dismisses automatically after 4 seconds
+                onClose={handleCloseToast}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }} // Centers it at the top of the viewport
+            >
+                <Alert
+                    onClose={handleCloseToast}
+                    severity={toast.severity}
+                    variant="filled"
+                    sx={{ width: "100%", fontWeight: 600, borderRadius: 2 }}
+                >
+                    {toast.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

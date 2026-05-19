@@ -1,10 +1,14 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ResponsiveAppBar from "../../ChairManagerPage/components/ChairManagerNavbar";
-import { Box, TextField, MenuItem, FormControl, InputLabel, Select, Button, Snackbar, Alert } from "@mui/material";
+import {
+    Snackbar,
+    Alert,
+    CircularProgress
+} from "@mui/material";
 import profileImage from "../../../assets/profile-icon-blank.png";
 import EditIcon from '@mui/icons-material/Edit';
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { supabase } from "../../../utils/supabase";
 
 const useIsDesktop = () => {
@@ -87,10 +91,16 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <div>
-                {fromChairManager ? <ResponsiveAppBar /> : <Navbar />}
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+            // Use a flex column layout for the whole page
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+                <Navbar />
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );

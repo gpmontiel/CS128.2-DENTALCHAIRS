@@ -371,6 +371,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                     {/* LOGO - CENTERED ON MOBILE, LEFT ON DESKTOP */}
                     <Box
+                        onClick={() => navigate('/clinician')}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',

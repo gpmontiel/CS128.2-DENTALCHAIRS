@@ -48,7 +48,7 @@ interface AppNotification {
 const pages: Page[] = [
     { name: 'Attendance', path: '/clinicalAdminAttendance', icon: <CalendarMonthIcon fontSize="small" /> },
     { name: 'Requests', path: '/clinicalAdminRequests', icon: <AssignmentTurnedInIcon fontSize="small" /> },
-    { name: 'Reports', path: '/clinicalAdminRequests', icon: <AssessmentIcon fontSize="small" /> },
+    { name: 'Reports', path: '/clinicalAdminReports', icon: <AssessmentIcon fontSize="small" /> },
     { name: 'Management', path: '/clinicalAdminStudents', icon: <PeopleIcon fontSize="small" /> },
 ];
 
@@ -291,7 +291,7 @@ const ResponsiveAppBar: React.FC = () => {
                     </Box>
 
                     {/* APP LOGO ANCHOR BRANDING */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: { xs: "absolute", md: "relative" }, left: { xs: "50%", md: "auto" }, transform: { xs: "translateX(-50%)", md: "none" }, zIndex: 1 }}>
+                    <Box onClick={() => navigate("/clinicalAdminAttendance")} sx={{ display: 'flex', alignItems: 'center', gap: 1, position: { xs: "absolute", md: "relative" }, left: { xs: "50%", md: "auto" }, transform: { xs: "translateX(-50%)", md: "none" }, zIndex: 1 }}>
                         <img src={logo} alt="Logo" style={{ height: "28px" }} />
                         <Typography sx={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, color: "#E9B0F8", fontSize: 21 }}>
                             DenTrack

@@ -1,8 +1,9 @@
 import "./RequestSchedule.css"; 
 import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabase";
+import {CircularProgress} from "@mui/material";
 
 type Schedule = {
     assignment_id: number;
@@ -82,10 +83,15 @@ const RequestSchedule = () => {
 
     if (loading) {
         return (
-            <div>
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Navbar />
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );

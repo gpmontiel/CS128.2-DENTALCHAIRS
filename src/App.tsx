@@ -55,6 +55,8 @@ function App() {
                 <Route path="/admin-profile" element={<AdminProfile />} />
                 <Route path="/admin-edit-profile" element={<AdminEditProfile />} />
                 <Route path="/admin-notifications" element={<AdminNotificationsPage />} />
+                <Route path="/clinicalAdminReports" element={<ManagerHome />} />
+
                 <Route element={<ClinicalAdminLayout />}>
                     <Route path="/clinicalAdminStudents" element={<ClinicalAdminStudents />} />
                     <Route path="/clinicalAdminRequests" element={<ClinicalAdminRequests />} />

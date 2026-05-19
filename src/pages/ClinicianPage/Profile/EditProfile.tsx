@@ -1,6 +1,17 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useRef } from "react";
-import { Box, TextField, MenuItem, FormControl, InputLabel, Select, Button, Snackbar, Alert } from "@mui/material";
+import {
+    Box,
+    TextField,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Select,
+    Button,
+    Snackbar,
+    Alert,
+    CircularProgress
+} from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import Navbar from "../components/Navbar";
@@ -258,10 +269,16 @@ const EditProfile = () => {
 
     if (loading) {
         return (
-            <div>
-                {fromChairManager ? <ResponsiveAppBar /> : <Navbar />}
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+            // Use a flex column layout for the whole page
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+                <Navbar />
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );

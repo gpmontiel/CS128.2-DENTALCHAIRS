@@ -467,6 +467,7 @@ const ResponsiveAppBar: React.FC = () => {
 
                     {/* LOGO - CENTERED ON MOBILE, LEFT ON DESKTOP */}
                     <Box
+                        onClick={() => navigate('/chair-manager-home')}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -475,6 +476,7 @@ const ResponsiveAppBar: React.FC = () => {
                             left: { xs: "50%", md: "auto" },
                             transform: { xs: "translateX(-50%)", md: "none" },
                             zIndex: 1,
+                            cursor: "pointer"
                         }}
                     >
                         <img src={logo} alt="Logo" style={{ height: "28px" }} />

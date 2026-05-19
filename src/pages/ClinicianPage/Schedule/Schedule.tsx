@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Snackbar, Alert } from "@mui/material";
+import {Snackbar, Alert, CircularProgress} from "@mui/material";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { supabase } from "../../../utils/supabase";
@@ -498,10 +498,16 @@ const Schedule = () => {
 
     if (loading) {
         return (
-            <div>
+            // Use a flex column layout for the whole page
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                 <Navbar />
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );

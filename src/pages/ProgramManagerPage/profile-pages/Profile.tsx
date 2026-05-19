@@ -6,6 +6,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabase";
 import "../css/ProfilePage.css";
+import {CircularProgress} from "@mui/material";
 
 const useIsDesktop = () => {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -71,13 +72,25 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <div>
+            // 1. Make the outer container fill the entire screen height using Flexbox
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+
                 {fromProgramManager ? (
                     <ResponsiveAppBar />
                 ) : (
                     <Navbar />
                 )}
-                <p style={{ textAlign: "center" }}>Loading...</p>
+
+                {/* 2. This container will stretch to fill the rest of the screen and center the spinner */}
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
+                </div>
+
             </div>
         );
     }

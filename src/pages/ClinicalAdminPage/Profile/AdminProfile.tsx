@@ -1,11 +1,16 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import ResponsiveAppBar from "../../ChairManagerPage/components/ChairManagerNavbar";
-import { Box, TextField, MenuItem, FormControl, InputLabel, Select, Button, Snackbar, Alert } from "@mui/material";
+import {
+    Snackbar,
+    Alert,
+    CircularProgress
+} from "@mui/material";
 import profileImage from "../../../assets/profile-icon-blank.png";
 import EditIcon from '@mui/icons-material/Edit';
 import { useState, useEffect } from "react"
 import { supabase } from "../../../utils/supabase";
+import Navbar from "../../ClinicianPage/components/Navbar.tsx";
 
 const useIsDesktop = () => {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -87,10 +92,15 @@ const AdminProfile = () => {
 
     if (loading) {
         return (
-            <div>
-                {fromChairManager ? <ResponsiveAppBar /> : <AdminNavbar />}
-                <div style={{ paddingTop: "20px", textAlign: "center" }}>
-                    <p>Loading...</p>
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+                <Navbar />
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexGrow: 1
+                }}>
+                    <CircularProgress />
                 </div>
             </div>
         );
