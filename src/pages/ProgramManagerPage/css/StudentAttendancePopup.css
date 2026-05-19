@@ -13,7 +13,7 @@
 }
 
 .popup-container {
-  width: min(600px, 92vw);
+  width: min(650px, 80vw) !important;
   max-height: 90%;
   background: #ffffff;
   border-radius: 16px;

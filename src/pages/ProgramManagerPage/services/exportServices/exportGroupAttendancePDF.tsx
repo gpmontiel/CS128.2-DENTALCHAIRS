@@ -105,7 +105,7 @@ export const exportGroupAttendancePDF = ({
   ]);
 
   // =========================
-  // HEADER (UNCHANGED)
+  // HEADER
   // =========================
   doc.addImage(
     logoImage,
@@ -142,28 +142,29 @@ export const exportGroupAttendancePDF = ({
   doc.setFontSize(13);
   doc.setFont(fontFamily, "bold");
 
+  const isAllGroups = groupName.toUpperCase() === "ALL STUDENT GROUPS";
+
   doc.text(
-    groupName.toUpperCase() === "ALL STUDENT GROUPS"
-      ? `${groupName}`
-      : `${groupName} Student Group`,
+    isAllGroups ? `${groupName}` : `${groupName} Student Group`,
     textXOffset,
     headerStartY + lineGap
   );
+
+  const prettyFilter = filterType.charAt(0).toUpperCase() + filterType.slice(1).toLowerCase();
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, "normal");
   doc.setTextColor(60, 60, 60);
 
   doc.text(
-    `${filterType.charAt(0).toUpperCase() +
-      filterType.slice(1)}: ${formatPDFDateRange(
+    `${prettyFilter}: ${formatPDFDateRange(
       filterRangeLabel
     )}`,
     textXOffset,
     headerStartY + lineGap * 2
   );
 
-  // NOTE (UNCHANGED)
+  // NOTE
   const noteY = 46;
 
   doc.setFontSize(9);
@@ -178,7 +179,7 @@ export const exportGroupAttendancePDF = ({
   const tableStartY = noteY + 3;
 
   // =========================
-  // EMPTY STATE FIX (ONLY ADDITION)
+  // EMPTY STATE FIX
   // =========================
   const hasData = Object.keys(studentMap).length > 0;
 
@@ -195,7 +196,7 @@ export const exportGroupAttendancePDF = ({
     );
   } else {
     // =========================
-    // TABLE (UNCHANGED)
+    // TABLE
     // =========================
     autoTable(doc, {
       startY: tableStartY,
@@ -259,10 +260,19 @@ export const exportGroupAttendancePDF = ({
   }
 
   // =========================
-  // FOOTER (UNCHANGED)
+  // FOOTER & DOWNLOAD
   // =========================
   drawPDFCommonFooter({ doc });
 
-  const blob = doc.output("blob");
-  window.open(URL.createObjectURL(blob));
+  // Format the group name target for filename generation
+  let groupSegment = groupName.trim();
+  if (isAllGroups) {
+    groupSegment = groupSegment.replace(/\s+/g, "_");
+  } else {
+    groupSegment = groupSegment.replace(/\s+/g, "");
+  }
+
+  const filename = `SAR_${prettyFilter}_${groupSegment}.pdf`;
+
+  doc.save(filename);
 };

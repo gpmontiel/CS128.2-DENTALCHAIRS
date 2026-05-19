@@ -3,7 +3,7 @@ import { FiSearch, FiX, FiFileText, FiEye } from "react-icons/fi";
 import { FaTooth } from "react-icons/fa6";
 
 import "../css/StudentAttendancePage.css";
-import ExportModal from "../components/ExportModal";
+import StudentExportModal from "../components/StudentExportModal.tsx";
 
 import { fetchStudentProfilesService } from "../services/fetchStudentProfilesService";
 import { fetchGroupAttendanceService } from "../services/fetchGroupAttendanceService";
@@ -207,7 +207,7 @@ const StudentAttendanceView: React.FC = () => {
       </div>
 
       {/* ================= MODALS ================= */}
-      <ExportModal
+      <StudentExportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onExport={handleExport}

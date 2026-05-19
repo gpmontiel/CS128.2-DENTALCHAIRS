@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiX, FiDownload } from "react-icons/fi";
 import { FaTooth } from "react-icons/fa6";
 
-import "../css/ViewStudentAttendancePopup.css";
+import "../css/StudentAttendancePopup.css";
 
 import { fetchStudentAttendanceService } from "../services/fetchStudentAttendanceService";
 import type { AttendanceServiceRow } from "../services/fetchStudentAttendanceService";

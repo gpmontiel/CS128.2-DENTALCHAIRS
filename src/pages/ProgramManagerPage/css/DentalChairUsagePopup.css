@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =========================
+   BASE OVERLAY + CONTAINER
+========================= */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 16px;
+}
+
+.popup-container {
+  width: min(650px, 80vw);
+  max-height: 90%;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+}
+
+/* =========================
+   CLOSE BUTTON
+========================= */
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* =========================
+   HEADER (MATCH STUDENT STYLE)
+========================= */
+.usage-header {
+  padding: 32px 32px 16px 32px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.usage-header h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.usage-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ROOM BADGE */
+.room-pill {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ecfeff;
+  border: 1px solid #67e8f9;
+  color: #0891b2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* =========================
+   CONTROLS BAR
+========================= */
+.controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background: #fff;
+  gap: 16px;
+}
+
+/* FILTER TABS (MATCH STUDENT UI) */
+.tabs-group {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1.2px solid #e2e8f0;
+}
+
+.tab-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover {
+  background: #ede9fe;
+  color: #a23eff;
+}
+
+.tab-item.active {
+  background: #9268bc;
+  color: #ffffff;
+}
+
+/* DOWNLOAD BUTTON (MATCH STYLE) */
+.download-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #6b21a8;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+}
+
+.download-action-btn:hover {
+  background: #581c87;
+}
+
+/* =========================
+   RANGE LABEL
+========================= */
+.range-label {
+  padding: 0 32px;
+  margin-bottom: 6px;
+}
+
+.range-text {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* =========================
+   CUSTOM RANGE INPUT
+========================= */
+.custom-range-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 32px 12px 32px;
+}
+
+.custom-range-picker input {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* =========================
+   TABLE AREA
+========================= */
+.popup-content-body {
+  padding: 0 32px 32px 32px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+/* TABLE STYLE (MATCH STUDENT) */
+.attendance-data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+}
+
+.attendance-data-table th {
+  padding: 12px 16px;
+  background: #f2f6f9;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.attendance-data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.attendance-data-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* =========================
+   STATE
+========================= */
+.state-message {
+  text-align: center;
+  padding: 40px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+
+  .usage-header {
+    padding: 24px 20px 16px 20px;
+  }
+
+  .controls-bar {
+    padding: 12px 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tabs-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tab-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .download-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .popup-content-body {
+    padding: 0 20px 20px 20px;
+  }
+
+  .attendance-data-table,
+  .attendance-data-table tbody,
+  .attendance-data-table tr {
+    display: block;
+  }
+
+  .attendance-data-table thead {
+    display: none;
+  }
+
+  .attendance-data-table tr {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .attendance-data-table td {
+    border: none;
+    padding: 0;
+    font-size: 13px;
+  }
+}
