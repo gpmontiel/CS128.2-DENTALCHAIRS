@@ -1,15 +1,25 @@
 import React, { useState } from "react";
-import { FiX, FiDownload } from "react-icons/fi"; // ❌ removed FiCalendar
+import { FiX, FiDownload } from "react-icons/fi";
 import "../css/ExportModal.css";
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedGroup: string;
+
+  onExport: (params: {
+    timeframe: "weekly" | "monthly" | "custom";
+    startDate: string;
+    endDate: string;
+    group: string;
+  }) => void;
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({
   isOpen,
   onClose,
+  onExport,
+  selectedGroup,
 }) => {
   const [timeframe, setTimeframe] = useState<
     "weekly" | "monthly" | "custom"
@@ -20,13 +30,94 @@ const ExportModal: React.FC<ExportModalProps> = ({
 
   if (!isOpen) return null;
 
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleExport = () => {
+    const today = new Date();
+
+    let finalStartDate = "";
+    let finalEndDate = "";
+
+    // =========================
+    // WEEKLY 
+    // =========================
+    if (timeframe === "weekly") {
+      const today = new Date();
+
+      const day = today.getDay(); 
+      // 0 = Sunday, 1 = Monday, ... 6 = Saturday
+
+      // Find current week's Monday
+      const currentMonday = new Date(today);
+      const diffToMonday = (day === 0 ? -6 : 1 - day);
+      currentMonday.setDate(today.getDate() + diffToMonday);
+
+      let start: Date;
+      let end: Date;
+
+      // If Saturday or Sunday → use PREVIOUS week
+      if (day === 6 || day === 0) {
+        start = new Date(currentMonday);
+        start.setDate(currentMonday.getDate() - 7);
+
+        end = new Date(start);
+        end.setDate(start.getDate() + 4); // Friday
+      } else {
+        // Weekday → current week (Mon–Fri)
+        start = new Date(currentMonday);
+        end = new Date(currentMonday);
+        end.setDate(currentMonday.getDate() + 4);
+      }
+
+      finalStartDate = formatDate(start);
+      finalEndDate = formatDate(end);
+    }
+
+    // =========================
+    // MONTHLY
+    // =========================
+    if (timeframe === "monthly") {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      finalStartDate = formatDate(start);
+      finalEndDate = formatDate(end);
+    }
+
+    // =========================
+    // CUSTOM RANGE
+    // =========================
+    if (timeframe === "custom") {
+      if (!startDate || !endDate) {
+        alert("Please select a valid date range.");
+        return;
+      }
+
+      if (new Date(startDate) > new Date(endDate)) {
+        alert("Start date cannot be after end date.");
+        return;
+      }
+
+      finalStartDate = startDate;
+      finalEndDate = endDate;
+    }
+
+    onExport({
+      timeframe,
+      startDate: finalStartDate,
+      endDate: finalEndDate,
+      group: selectedGroup,
+    });
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* HEADER */}
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Exporting Options</h2>
           <button className="close-btn" onClick={onClose}>
@@ -35,36 +126,27 @@ const ExportModal: React.FC<ExportModalProps> = ({
         </div>
 
         <div className="modal-body">
-          <label className="section-label">
-            Select Timeframe
-          </label>
+          <label className="section-label">Select Timeframe</label>
 
-          {/* TIMEFRAME SELECTOR */}
           <div className="timeframe-selector">
             <button
-              className={`time-tab ${
-                timeframe === "weekly" ? "active" : ""
-              }`}
+              className={`time-tab ${timeframe === "weekly" ? "active" : ""}`}
               onClick={() => setTimeframe("weekly")}
             >
               <strong>Weekly</strong>
-              <span>this week</span>
+              <span>5 working days</span>
             </button>
 
             <button
-              className={`time-tab ${
-                timeframe === "monthly" ? "active" : ""
-              }`}
+              className={`time-tab ${timeframe === "monthly" ? "active" : ""}`}
               onClick={() => setTimeframe("monthly")}
             >
               <strong>Monthly</strong>
-              <span>this month</span>
+              <span>Current month</span>
             </button>
 
             <button
-              className={`time-tab ${
-                timeframe === "custom" ? "active" : ""
-              }`}
+              className={`time-tab ${timeframe === "custom" ? "active" : ""}`}
               onClick={() => setTimeframe("custom")}
             >
               <strong>Custom Range</strong>
@@ -72,11 +154,10 @@ const ExportModal: React.FC<ExportModalProps> = ({
             </button>
           </div>
 
-          {/* CUSTOM DATE PICKER */}
           {timeframe === "custom" && (
             <div className="date-inputs-container">
               <div className="date-field">
-                <label>From:</label>
+                <label>Start Date:</label>
                 <div className="input-wrapper">
                   <input
                     type="date"
@@ -89,7 +170,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
               <span className="date-separator">to</span>
 
               <div className="date-field">
-                <label>To:</label>
+                <label>End Date:</label>
                 <div className="input-wrapper">
                   <input
                     type="date"
@@ -101,8 +182,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
             </div>
           )}
 
-          {/* DOWNLOAD BUTTON */}
-          <button className="download-btn">
+          <button className="download-btn" onClick={handleExport}>
             DOWNLOAD PDF <FiDownload />
           </button>
         </div>

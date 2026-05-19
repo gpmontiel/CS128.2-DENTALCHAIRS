@@ -1,6 +1,11 @@
 import jsPDF from 'jspdf';
 import autoTable from "jspdf-autotable";
-import logoImage from "../asset/DentrackPDFLogo.png";
+import logoImage from "../../asset/DentrackPDFLogo.png";
+import { drawPDFCommonFooter } from "../exportUtilsAndComponents/pdfFooter";
+import {
+  formatPDFDate,
+  formatPDFDateRange,
+} from "../exportUtilsAndComponents/pdfDateFormatter";
 
 export type AttendanceWithClinician = {
   date: string;
@@ -73,11 +78,7 @@ export const exportAttendancePDF = ({
     const dateObj = new Date(row.date);
     const formattedDate = dateObj.toISOString().split("T")[0];
 
-    const displayDate = dateObj.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    const displayDate = formatPDFDate(formattedDate);
 
     if (!groupedData[formattedDate]) {
       groupedData[formattedDate] = {
@@ -90,10 +91,16 @@ export const exportAttendancePDF = ({
       };
     }
 
-    const roomKey = mapRoomToAcronym(row.sections?.rooms?.room_name || "");
+    const roomKey = mapRoomToAcronym(
+      row.sections?.rooms?.room_name || ""
+    );
+
     const shift = (row.shift || "").toUpperCase();
 
-    if (roomKey && groupedData[formattedDate][roomKey]) {
+    if (
+      roomKey &&
+      groupedData[formattedDate][roomKey]
+    ) {
       if (row.status === "Present") {
         const val = shift === "AM" ? "am" : "pm";
         groupedData[formattedDate][roomKey][val] += 0.5;
@@ -103,9 +110,6 @@ export const exportAttendancePDF = ({
     groupedData[formattedDate]._label = displayDate;
   });
 
-  // -----------------------------
-  // BUILD TABLE
-  // -----------------------------
   let grandTotal = 0;
 
   const tableBody = Object.keys(groupedData)
@@ -127,19 +131,25 @@ export const exportAttendancePDF = ({
 
       grandTotal += rowTotal;
 
-      return [row._label || "", ...cells, rowTotal.toString()];
+      return [
+        row._label || "",
+        ...cells,
+        rowTotal.toString(),
+      ];
     });
 
-  tableBody.push([
-    "GRAND TOTAL",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    grandTotal.toString(),
-  ]);
+  if (tableBody.length > 0) {
+    tableBody.push([
+      "GRAND TOTAL",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      grandTotal.toString(),
+    ]);
+  }
 
   // -----------------------------
   // HEADER
@@ -167,7 +177,6 @@ export const exportAttendancePDF = ({
     headerStartY
   );
 
-  // NAME + GROUP
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(13);
   doc.setFont(fontFamily, "bold");
@@ -177,25 +186,30 @@ export const exportAttendancePDF = ({
     headerStartY + lineGap
   );
 
-  // FILTER
   const prettyFilter =
-    filterType.charAt(0).toUpperCase() + filterType.slice(1);
+    filterType.charAt(0).toUpperCase() +
+    filterType.slice(1);
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, "normal");
   doc.setTextColor(60, 60, 60);
   doc.text(
-    `${prettyFilter}: ${filterRangeLabel}`,
+    `${prettyFilter}: ${formatPDFDateRange(
+      filterRangeLabel
+    )}`,
     textXOffset,
     headerStartY + lineGap * 2
   );
 
-  // MOVED EVERYTHING 1 PIXEL LOWER
   const legendY = headerStartY + lineGap * 3 + 3;
 
   doc.setFontSize(9);
   doc.setTextColor(100);
-  doc.text("Legend: AM (Blue), PM (Orange)", tableMargin, legendY);
+  doc.text(
+    "Legend: AM (Blue), PM (Orange)",
+    tableMargin,
+    legendY
+  );
 
   doc.text(
     "Note: One shift per student = 0.5 credit",
@@ -204,133 +218,119 @@ export const exportAttendancePDF = ({
   );
 
   // -----------------------------
-  // TABLE
+  // TABLE OR EMPTY STATE
   // -----------------------------
-  autoTable(doc, {
-    startY: legendY + 7,
+  const hasData = Object.keys(groupedData).length > 0;
 
-    margin: {
-      left: tableMargin,
-      right: tableMargin,
-    },
+  if (!hasData) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(120);
 
-    theme: "grid",
+    doc.text(
+      "No Records Found",
+      doc.internal.pageSize.getWidth() / 2,
+      90,
+      { align: "center" }
+    );
+  } else {
+    autoTable(doc, {
+      startY: legendY + 7,
 
-    head: [["Date", ...roomsList, "TOTAL"]],
-
-    body: tableBody,
-
-    styles: {
-      font: fontFamily,
-      fontSize: 9,
-      cellPadding: 2.5,
-      halign: "center",
-      valign: "middle",
-      textColor: [50, 50, 50],
-    },
-
-    headStyles: {
-      fillColor: [74, 37, 107],
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-      font: fontFamily,
-    },
-
-    columnStyles: {
-      0: {
-        cellWidth: dateColWidth,
-        fillColor: DATE_BG,
+      margin: {
+        left: tableMargin,
+        right: tableMargin,
       },
 
-      1: { cellWidth: roomColWidth },
-      2: { cellWidth: roomColWidth },
-      3: { cellWidth: roomColWidth },
-      4: { cellWidth: roomColWidth },
-      5: { cellWidth: roomColWidth },
-      6: { cellWidth: roomColWidth },
+      theme: "grid",
+      head: [["Date", ...roomsList, "TOTAL"]],
 
-      7: {
-        cellWidth: totalColWidth,
+      body: tableBody,
+
+      styles: {
+        font: fontFamily,
+        fontSize: 9,
+        cellPadding: 2.5,
+        halign: "center",
+        valign: "middle",
+        textColor: [50, 50, 50],
+      },
+
+      headStyles: {
+        fillColor: [74, 37, 107],
+        textColor: [255, 255, 255],
         fontStyle: "bold",
+        font: fontFamily,
       },
-    },
 
-    didParseCell: (data) => {
-      const isGT = data.row.index === tableBody.length - 1;
+      columnStyles: {
+        0: {
+          cellWidth: dateColWidth,
+          fillColor: DATE_BG,
+        },
+        1: { cellWidth: roomColWidth },
+        2: { cellWidth: roomColWidth },
+        3: { cellWidth: roomColWidth },
+        4: { cellWidth: roomColWidth },
+        5: { cellWidth: roomColWidth },
+        6: { cellWidth: roomColWidth },
+        7: {
+          cellWidth: totalColWidth,
+          fontStyle: "bold",
+        },
+      },
 
-      if (isGT) {
-        const isLastColumn = data.column.index === 7;
+      didParseCell: (data) => {
+        const isGT =
+          data.row.index === tableBody.length - 1;
 
-        if (isLastColumn) {
-          data.cell.styles.fillColor = [229, 169, 242];
-          data.cell.styles.fontStyle = "bold";
-        } else {
-          data.cell.styles.fontStyle = "normal";
-        }
+        if (isGT) {
+          const isLastCol = data.column.index === 7;
 
-        return;
-      }
-
-      if (data.column.index > 0 && data.column.index < 7) {
-        const raw = data.cell.raw;
-
-        if (typeof raw === "string" && raw.includes("|")) {
-          const [value, shift] = raw.split("|");
-
-          data.cell.text = [value];
-
-          if (shift === "AM") {
-            data.cell.styles.fillColor = [173, 216, 255];
+          if (isLastCol) {
+            data.cell.styles.fillColor = [
+              229, 169, 242,
+            ];
+            data.cell.styles.fontStyle = "bold";
+          } else {
+            data.cell.styles.fontStyle = "normal";
           }
+          return;
+        }
+        if (
+          data.column.index > 0 &&
+          data.column.index < 7
+        ) {
+          const raw = data.cell.raw;
+          if (
+            typeof raw === "string" &&
+            raw.includes("|")
+          ) {
+            const [value, shift] = raw.split("|");
+            data.cell.text = [value];
 
-          if (shift === "PM") {
-            data.cell.styles.fillColor = [255, 220, 180];
+            if (shift === "AM") {
+              data.cell.styles.fillColor = [
+                173, 216, 255,
+              ];
+            }
+
+            if (shift === "PM") {
+              data.cell.styles.fillColor = [
+                255, 220, 180,
+              ];
+            }
           }
         }
-      }
-    },
-  });
+      },
+    });
+  }
 
   // -----------------------------
   // FOOTER
   // -----------------------------
-  const totalPages = doc.getNumberOfPages();
-
-  const generatedDate = new Date().toLocaleString("en-US");
-
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-
-    doc.setFont("helvetica");
-    doc.setFontSize(8);
-    doc.setTextColor(120);
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    const pageHeight = doc.internal.pageSize.getHeight();
-
-    // PAGE NUMBER
-    doc.text(
-      `Page ${i} of ${totalPages}`,
-      pageWidth / 2,
-      pageHeight - 10,
-      {
-        align: "center",
-      }
-    );
-
-    // GENERATED DATE
-    doc.text(
-      `Generated: ${generatedDate}`,
-      pageWidth - 14,
-      pageHeight - 10,
-      {
-        align: "right",
-      }
-    );
-  }
+  drawPDFCommonFooter({ doc });
 
   const blob = doc.output("blob");
-
   window.open(URL.createObjectURL(blob));
 };

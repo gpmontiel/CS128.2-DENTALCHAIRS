@@ -234,8 +234,8 @@
   transform: translateY(-4px);
   border-color: #c4b5fd;
   box-shadow:
-    0 10px 22px rgba(73, 57, 121, 0.15),
-    0 0 18px rgba(146, 104, 188, 0.25);
+    0 14px 28px rgba(73, 57, 121, 0.22),
+    0 0 22px rgba(146, 104, 188, 0.35);
 }
 
 /* PROFILE PIC */

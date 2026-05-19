@@ -6,6 +6,9 @@ import "../css/StudentAttendancePage.css";
 import ExportModal from "../components/ExportModal";
 
 import { fetchStudentProfilesService } from "../services/fetchStudentProfilesService";
+import { fetchGroupAttendanceService } from "../services/fetchGroupAttendanceService";
+import { exportGroupAttendancePDF } from "../services/exportServices/exportGroupAttendancePDF";
+
 import ViewStudentAttendancePopup from "../components/ViewStudentAttendancePopup";
 
 const groups = [
@@ -46,6 +49,40 @@ const StudentAttendanceView: React.FC = () => {
 
     load();
   }, [selected, search]);
+
+  const handleExport = async ({
+    timeframe,
+    startDate,
+    endDate,
+    group,
+  }: {
+    timeframe: "weekly" | "monthly" | "custom";
+    startDate: string;
+    endDate: string;
+    group: string;
+  }) => {
+    try {
+      const normalizedGroup =
+        group === "All Student Groups" ? "ALL" : group;
+
+      const data = await fetchGroupAttendanceService({
+        group: normalizedGroup,
+        startDate,
+        endDate,
+      });
+
+      exportGroupAttendancePDF({
+        data,
+        groupName: group,
+        filterType: timeframe,
+        filterRangeLabel: `${startDate} - ${endDate}`,
+      });
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
+  };
 
   return (
     <div className="attendance-wrapper">
@@ -122,13 +159,11 @@ const StudentAttendanceView: React.FC = () => {
               return (
                 <div key={student.student_id} className="student-card">
 
-                  {/* PROFILE IMAGE */}
                   <img
                     src={student.profiles?.pfp || ""}
                     className="student-pfp"
                   />
 
-                  {/* INFO */}
                   <div className="student-info">
                     <h3>
                       {student.profiles?.first_name}{" "}
@@ -152,7 +187,6 @@ const StudentAttendanceView: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* VIEW BUTTON */}
                   <button
                     className="export-individual-btn"
                     onClick={() => {
@@ -176,6 +210,8 @@ const StudentAttendanceView: React.FC = () => {
       <ExportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onExport={handleExport}
+        selectedGroup={selected}
       />
 
       <ViewStudentAttendancePopup
