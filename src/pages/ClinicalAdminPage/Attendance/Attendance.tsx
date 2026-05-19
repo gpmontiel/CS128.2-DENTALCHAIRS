@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { 
-    Box, Typography, Button, IconButton, List, ListItem, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+    Box, Typography, Button, IconButton, List, ListItem,
     ListItemAvatar, ListItemText, Avatar, Paper, CircularProgress, Chip,
-    Dialog, DialogTitle, DialogContent, DialogActions, FormControl, 
+    Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
     InputLabel, Select, MenuItem, TextField, RadioGroup, FormControlLabel, Radio
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -45,29 +45,31 @@ const Attendance: React.FC = () => {
     const [attendanceList, setAttendanceList] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const dateListRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
     // --- REASON POPUP STATE ---
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [activeAction, setActiveAction] = useState<{ requestId: number; status: 'Present' | 'Absent'; isAssistant: boolean } | null>(null);
     const [reason, setReason] = useState<string>("");
-    const [customReason, setCustomReason] = useState<string>(" ");
+    const [customReason, setCustomReason] = useState<string>("");
 
     // --- MANUAL ENTRY STATE ---
     const [manualDialogOpen, setManualDialogOpen] = useState<boolean>(false);
     const [students, setStudents] = useState<ProfileItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
     const [manualForm, setManualForm] = useState({
-        studentId: "", 
+        studentId: "",
         roomId: "",
-        sectionId: "", 
+        sectionId: "",
         date: dayjs().format('YYYY-MM-DD'),
         shift: "",
-        status: "Present" 
+        status: "Present"
     });
 
     // --- PDF REPORT CONFIGURATION STATE ---
     const [reportDialogOpen, setReportDialogOpen] = useState<boolean>(false);
     const [reportType, setReportType] = useState<'batch' | 'overall'>('batch');
-    const [batches, setBatches] = useState<BatchItem[]>([]); 
+    const [batches, setBatches] = useState<BatchItem[]>([]);
     const [selectedBatchId, setSelectedBatchId] = useState<number | "">("");
     const [reportWeekStart, setReportWeekStart] = useState<string>(dayjs().startOf('week').format('YYYY-MM-DD'));
     const [reportMonth, setReportMonth] = useState<string>(dayjs().format('YYYY-MM'));
@@ -87,7 +89,7 @@ const Attendance: React.FC = () => {
             const { data: studentData } = await supabase
                 .from('profiles')
                 .select('profile_id, first_name, last_name, pfp, role_id')
-                .eq('role_id', 3); 
+                .eq('role_id', 3);
             if (studentData) setStudents(studentData as ProfileItem[]);
 
             const { data: sectionData } = await supabase.from('sections').select('*');
@@ -97,7 +99,7 @@ const Attendance: React.FC = () => {
                 .from('student_groups')
                 .select('group_id, group_name')
                 .order('group_id', { ascending: true });
-            
+
             if (groupData && !groupError) {
                 const formattedBatches = groupData.map((g: any) => ({
                     id: g.group_id,
@@ -119,7 +121,7 @@ const Attendance: React.FC = () => {
     const fetchAttendance = async (roomId: number) => {
         setLoading(true);
         const formattedDate = selectedDate.format('YYYY-MM-DD');
-        
+
         const { data, error } = await supabase
             .from('dental_chairs_request_assignment')
             .select(`
@@ -146,7 +148,7 @@ const Attendance: React.FC = () => {
         if (!error && data) {
             const matchingRows = data.filter((item: any) => {
                 const statusMatch = item.status === 'Accepted';
-                const roomMatch = Number(item.sections?.room_id) === Number(roomId); 
+                const roomMatch = Number(item.sections?.room_id) === Number(roomId);
                 return statusMatch && roomMatch;
             });
 
@@ -155,6 +157,8 @@ const Attendance: React.FC = () => {
             matchingRows.forEach((item: any) => {
                 let primaryStatus = null;
                 let assistantStatus = null;
+                let primaryReason = null;
+                let assistantReason = null;
 
                 // Robust multi-format parsing for the attendance link
                 if (item.attendance) {
@@ -163,32 +167,36 @@ const Attendance: React.FC = () => {
                     if (attArray.length > 0) {
                         // 1. Isolate Assistant records explicitly tracking 'Assistant'
                         const assistLog = attArray.find((a: any) => a && a.reason === 'Assistant');
-                        
+
                         // 2. Isolate Primary records explicitly tracking non-assistant keys
                         const mainLog = attArray.find((a: any) => a && a.reason !== 'Assistant' && a.reason !== null && a.reason !== '');
 
                         // 3. Fallback: If there is exactly ONE attendance entry, and reason is NULL or unassigned
                         if (attArray.length === 1 && (attArray[0].reason === null || attArray[0].reason === '')) {
-                            // Apply the status to BOTH so whoever exists on the card displays their badge safely!
                             primaryStatus = attArray[0].status;
                             assistantStatus = attArray[0].status;
+                            primaryReason = attArray[0].reason;
+                            assistantReason = attArray[0].reason;
                         } else {
                             // Standard multi-row tracking mapping layout rules
                             primaryStatus = mainLog ? mainLog.status : (attArray.find((a: any) => a.reason !== 'Assistant')?.status || null);
                             assistantStatus = assistLog ? assistLog.status : null;
+
+                            primaryReason = mainLog ? mainLog.reason : (attArray.find((a: any) => a.reason !== 'Assistant')?.reason || null);
+                            assistantReason = assistLog ? assistLog.reason : null;
                         }
                     }
                 }
 
                 // 1. Resolve raw arrays for Student
                 const studentData = Array.isArray(item.student_id) ? item.student_id[0] : item.student_id;
-                const rawStudentProfile = studentData?.profiles 
+                const rawStudentProfile = studentData?.profiles
                     ? (Array.isArray(studentData.profiles) ? studentData.profiles[0] : studentData.profiles)
                     : null;
 
                 // 2. Resolve raw arrays for Assistant
                 const assistantData = Array.isArray(item.assistant_id) ? item.assistant_id[0] : item.assistant_id;
-                const rawAssistantProfile = assistantData?.profiles 
+                const rawAssistantProfile = assistantData?.profiles
                     ? (Array.isArray(assistantData.profiles) ? assistantData.profiles[0] : assistantData.profiles)
                     : null;
 
@@ -198,7 +206,7 @@ const Attendance: React.FC = () => {
                     const fName = profile.first_name || profile.firstName || "";
                     const lName = profile.last_name || profile.lastName || "";
                     const avatar = profile.pfp || "";
-                    
+
                     return {
                         first_name: fName,
                         last_name: lName,
@@ -217,8 +225,9 @@ const Attendance: React.FC = () => {
                         request_id: item.request_id,
                         shift: item.shift,
                         unique_key: `${item.request_id}-primary-${primaryProfile.lastName}`,
-                        display_profile: primaryProfile, 
+                        display_profile: primaryProfile,
                         current_attendance: primaryStatus,
+                        attendance_reason: primaryReason,
                         isAssistant: false
                     });
                 }
@@ -230,7 +239,8 @@ const Attendance: React.FC = () => {
                         shift: item.shift,
                         unique_key: `${item.request_id}-assistant-${assistantProfile.lastName}`,
                         display_profile: assistantProfile,
-                        current_attendance: assistantStatus, //  Fixed: Changed from primaryStatus to assistantStatus
+                        current_attendance: assistantStatus,
+                        attendance_reason: assistantReason,
                         isAssistant: true
                     });
                 }
@@ -256,7 +266,7 @@ const Attendance: React.FC = () => {
         if (isAssistant) {
             setReason("Assistant");
         } else {
-            setReason(""); // Clears it out for Primary Clinician custom dropdown picking
+            setReason("");
         }
 
         setCustomReason("");
@@ -272,30 +282,26 @@ const Attendance: React.FC = () => {
         if (!activeAction) return;
         const { requestId, status } = activeAction;
 
-        // Find the item within our state using the active transaction ID
         const targetedItem = attendanceList.find(
-            item => item.request_id === requestId && 
-            ((activeAction as any).isAssistant ? item.isAssistant : !item.isAssistant)
+            item => item.request_id === requestId &&
+                (activeAction.isAssistant ? item.isAssistant : !item.isAssistant)
         );
 
-        // If it's an assistant, set the reason automatically, otherwise use the state select value
         const finalRemarks = targetedItem?.isAssistant ? "Assistant" : (reason === "Others" ? customReason : reason);
 
-        // Upsert to your attendance matrix tracking setup
-        // Note: If your schema relies on a composite index of (request_id, reason), this allows two entries!
         const { error } = await supabase
             .from('attendance')
             .upsert(
-                { 
-                    request_id: requestId, 
-                    status: status, 
-                    reason: finalRemarks 
-                }, 
-                { onConflict: 'request_id, reason' } // Adjust based on your schema's constraints
+                {
+                    request_id: requestId,
+                    status: status,
+                    reason: finalRemarks
+                },
+                { onConflict: 'request_id, reason' }
             );
 
         if (error) {
-            alert("Error saving attendance entry: " + error.message); 
+            alert("Error saving attendance entry: " + error.message);
         } else {
             handleCloseDialog();
             if (selectedRoom) await fetchAttendance(selectedRoom.id);
@@ -314,8 +320,8 @@ const Attendance: React.FC = () => {
                     student_id: manualForm.studentId,
                     date: manualForm.date,
                     shift: manualForm.shift,
-                    status: 'Accepted', 
-                    section_id: finalSectionId 
+                    status: 'Accepted',
+                    section_id: finalSectionId
                 })
                 .select().single();
 
@@ -341,8 +347,8 @@ const Attendance: React.FC = () => {
                             student_id: clinicianData.assistant_id,
                             date: manualForm.date,
                             shift: manualForm.shift,
-                            status: 'Accepted', 
-                            section_id: finalSectionId 
+                            status: 'Accepted',
+                            section_id: finalSectionId
                         })
                         .select().single();
 
@@ -382,7 +388,7 @@ const Attendance: React.FC = () => {
                 }
 
                 const startOfWeek = dayjs(reportWeekStart).format('YYYY-MM-DD');
-                const endOfWeek = dayjs(reportWeekStart).add(4, 'day').format('YYYY-MM-DD'); 
+                const endOfWeek = dayjs(reportWeekStart).add(4, 'day').format('YYYY-MM-DD');
                 const targetBatchObj = batches.find(b => b.id === selectedBatchId);
                 const batchLabelText = targetBatchObj ? targetBatchObj.label : `Group ID: ${selectedBatchId}`;
 
@@ -436,7 +442,7 @@ const Attendance: React.FC = () => {
 
                         let rawSectionName = row.sections?.section_name?.toUpperCase() || "";
                         if (rawSectionName === "COMPLETE DENTURE") rawSectionName = "PROSTHO";
-                        
+
                         const matchedColumn = targetedColumns.find(c => c === rawSectionName || rawSectionName.startsWith(c));
                         const scoreValue = 0.5;
 
@@ -512,10 +518,10 @@ const Attendance: React.FC = () => {
                             const matchCount = data?.filter(d => {
                                 let itemSecName = d.sections?.section_name?.toUpperCase() || "";
                                 if (itemSecName === "COMPLETE DENTURE") itemSecName = "PROSTHO";
-                                
+
                                 const isCorrectRoom = itemSecName === col || itemSecName.startsWith(col);
-                                const isCorrectShift = (shiftName === 'AM' && (d.shift === 'Morning' || d.shift === 'AM')) || 
-                                                       (shiftName === 'PM' && (d.shift === 'Afternoon' || d.shift === 'PM'));
+                                const isCorrectShift = (shiftName === 'AM' && (d.shift === 'Morning' || d.shift === 'AM')) ||
+                                    (shiftName === 'PM' && (d.shift === 'Afternoon' || d.shift === 'PM'));
                                 return isCorrectRoom && isCorrectShift;
                             }).length || 0;
 
@@ -567,7 +573,7 @@ const Attendance: React.FC = () => {
 
             setPreviewHtml(dynamicHTMLContent);
             setReportDialogOpen(false);
-            setPreviewOpen(true); 
+            setPreviewOpen(true);
         } catch (err: any) {
             alert("Failed to build report view: " + err.message);
         } finally {
@@ -586,7 +592,7 @@ const Attendance: React.FC = () => {
         printFrame.style.width = "0";
         printFrame.style.height = "0";
         printFrame.style.border = "0";
-        
+
         document.body.appendChild(printFrame);
         const frameDoc = printFrame.contentWindow?.document || printFrame.contentDocument;
         if (frameDoc) {
@@ -644,44 +650,69 @@ const Attendance: React.FC = () => {
 
     const renderCalendar = () => (
         <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#493979' }}>
-                    Attendance
-                </Typography>
-                <Button 
-                    variant="contained" 
-                    onClick={() => setReportDialogOpen(true)}
-                    sx={{ bgcolor: '#5c51b6', textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
-                    startIcon={<AssessmentIcon />}
-                >
-                    Generate Report
-                </Button>
-            </Box>
-            
-            <Box sx={{ 
-                display: 'flex', gap: 2, overflowX: 'auto', pb: 3, px: 0.5,
-                '&::-webkit-scrollbar': { display: 'none' }
-            }}>
-                {[...Array(14)].map((_, i) => {
-                    const date = dayjs().add(i - 3, 'day');
-                    const isSelected = date.isSame(selectedDate, 'day');
-                    const isToday = date.isSame(dayjs(), 'day');
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 3, gap: 2 }}>
+                <Box>
+                    <Typography variant="h4" fontFamily="Poppins" sx={{ fontWeight: 700, color: '#493979' }}>
+                        Attendance
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        View, manage, and verify daily clinician clock-in records and shift statuses.
+                    </Typography>
+                </Box>
 
-                    return (
-                        <Paper 
-                            key={i} elevation={isSelected ? 4 : 0} onClick={() => setSelectedDate(date)}
-                            sx={{ 
-                                minWidth: 65, py: 2, textAlign: 'center', cursor: 'pointer', borderRadius: 4,
-                                bgcolor: isSelected ? '#5c51b6' : 'white', color: isSelected ? 'white' : '#666',
-                                border: isSelected ? 'none' : '1px solid #eee', transition: '0.2s all ease-in-out'
-                            }}
-                        >
-                            <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>{date.format('ddd')}</Typography>
-                            <Typography variant="h5" sx={{ fontWeight: 800 }}>{date.format('DD')}</Typography>
-                            {isToday && !isSelected && <Box sx={{ width: 4, height: 4, bgcolor: '#5c51b6', borderRadius: '50%', mx: 'auto', mt: 0.5 }} />}
-                        </Paper>
-                    );
-                })}
+                {/*<Button*/}
+                {/*    variant="contained"*/}
+                {/*    onClick={() => setReportDialogOpen(true)}*/}
+                {/*    sx={{ bgcolor: '#5c51b6', textTransform: 'none', fontWeight: 600, borderRadius: 2 }}*/}
+                {/*    startIcon={<AssessmentIcon />}*/}
+                {/*>*/}
+                {/*    Generate Report*/}
+                {/*</Button>*/}
+            </Box>
+
+            <Box sx={{ position: 'relative', width: '100%' }}>
+                <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, px: 0.5, fontWeight: 500 }}>
+                    Scroll horizontally to change target date:
+                </Typography>
+
+                <Box sx={{
+                    display: 'flex', gap: 2, overflowX: 'auto', pb: 3, px: 0.5,
+                    position: 'relative',
+                    zIndex: 1,
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    maskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)',
+                    WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)'
+                }}>
+                    {[...Array(14)].map((_, i) => {
+                        const date = dayjs().add(i - 3, 'day');
+                        const isSelected = date.isSame(selectedDate, 'day');
+                        const isToday = date.isSame(dayjs(), 'day');
+                        const dateStr = date.format('YYYY-MM-DD');
+
+                        return (
+                            <Box
+                                key={i}
+                                ref={(el) => (dateListRef.current[dateStr] = el)}
+                                sx={{ minWidth: 65 }}
+                            >
+                                <Paper
+                                    elevation={isSelected ? 4 : 0}
+                                    onClick={() => setSelectedDate(date)}
+                                    sx={{
+                                        width: '100%', py: 2, textAlign: 'center', cursor: 'pointer', borderRadius: 4,
+                                        bgcolor: isSelected ? '#5c51b6' : 'white', color: isSelected ? 'white' : '#666',
+                                        border: isSelected ? 'none' : '1px solid #eee', transition: '0.2s all ease-in-out',
+                                        '&:hover': { transform: 'translateY(-2px)' }
+                                    }}
+                                >
+                                    <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>{date.format('ddd')}</Typography>
+                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{date.format('DD')}</Typography>
+                                    {isToday && !isSelected && <Box sx={{ width: 4, height: 4, bgcolor: '#5c51b6', borderRadius: '50%', mx: 'auto', mt: 0.5 }} />}
+                                </Paper>
+                            </Box>
+                        );
+                    })}
+                </Box>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -726,38 +757,64 @@ const Attendance: React.FC = () => {
                 ) : attendanceList.length > 0 ? (
                     <List>
                         {attendanceList.map((req) => (
-                            /* Fixed: Changed key to unique_key to prevent list overlap */
                             <ListItem key={req.unique_key} sx={{ px: 0, py: 2, borderBottom: '1px solid #eee' }}>
                                 <ListItemAvatar>
-                                    {/* Fixed: Point to display_profile */}
                                     <Avatar src={req.display_profile?.pfp} />
                                 </ListItemAvatar>
-                                <ListItemText 
-                                    /* Fixed: Point to display_profile attributes */
-                                    primary={`${req.display_profile?.firstName} ${req.display_profile?.lastName}`}
-                                    secondary={`Shift: ${req.shift}`}
+                                <ListItemText
+                                    primary={
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                fontWeight: 700,
+                                                color: '#493979' // Bold and dark purple name text
+                                            }}
+                                        >
+                                            {`${req.display_profile?.firstName} ${req.display_profile?.lastName}`}
+                                        </Typography>
+                                    }
+                                    secondary={
+                                        <Box component="span" sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
+                                            <Typography component="span" variant="body2" color="text.secondary">
+                                                Shift: {req.shift}
+                                            </Typography>
+                                            {req.current_attendance && req.attendance_reason && (
+                                                <Typography
+                                                    component="span"
+                                                    variant="caption"
+                                                    sx={{
+                                                        color: '#6b7280', // Same clean gray formatting for all remarks
+                                                        fontWeight: 600,
+                                                        mt: 0.25,
+                                                        fontStyle: 'italic'
+                                                    }}
+                                                >
+                                                    Remarks: {req.attendance_reason}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    }
                                 />
                                 {req.current_attendance ? (
-                                    <Chip 
+                                    <Chip
                                         label={req.current_attendance} variant="filled"
                                         sx={{ fontWeight: 600, borderRadius: 2, minWidth: 80, bgcolor: req.current_attendance === 'Present' ? '#5c51b6' : '#d32f2f', color: 'white' }}
                                     />
                                 ) : (
                                     <Box sx={{ display: 'flex', gap: 1 }}>
-                                        {/* Fixed: Forward req.isAssistant argument to handleOpenDialog */}
-                                        <Button 
-                                            variant="outlined" 
-                                            size="small" 
-                                            onClick={() => handleOpenDialog(req.request_id, 'Present', req.isAssistant)} 
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={() => handleOpenDialog(req.request_id, 'Present', req.isAssistant)}
                                             sx={{ textTransform: 'none', borderRadius: 2, color: '#5c51b6', borderColor: '#5c51b6' }}
                                         >
                                             Present
                                         </Button>
-                                        <Button 
-                                            variant="outlined" 
-                                            size="small" 
-                                            color="error" 
-                                            onClick={() => handleOpenDialog(req.request_id, 'Absent', req.isAssistant)} 
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleOpenDialog(req.request_id, 'Absent', req.isAssistant)}
                                             sx={{ textTransform: 'none', borderRadius: 2, color: '#d32f2f', borderColor: '#d32f2f' }}
                                         >
                                             Absent
@@ -773,6 +830,20 @@ const Attendance: React.FC = () => {
             </Box>
         </Box>
     );
+
+    // WATCH AND CENTER THE DATES:
+    useEffect(() => {
+        const dateKey = selectedDate.format('YYYY-MM-DD');
+        const selectedEl = dateListRef.current[dateKey];
+
+        if (selectedEl) {
+            selectedEl.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center',
+            });
+        }
+    }, [selectedDate]);
 
     return (
         <Box sx={{ minHeight: '100vh', mx: 'auto' }}>
@@ -810,9 +881,9 @@ const Attendance: React.FC = () => {
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
                     <Button onClick={() => setReportDialogOpen(false)} color="inherit">Cancel</Button>
-                    <Button 
-                        onClick={handleCompileReportData} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleCompileReportData}
+                        variant="contained"
                         disabled={loading || (reportType === 'batch' && selectedBatchId === "")}
                         sx={{ bgcolor: '#5c51b6', textTransform: 'none' }}
                     >
@@ -851,7 +922,7 @@ const Attendance: React.FC = () => {
                             value={reason}
                             label="Reason"
                             onChange={(e) => setReason(e.target.value)}
-                            disabled={activeAction?.isAssistant} 
+                            disabled={activeAction?.isAssistant}
                         >
                             {activeAction?.isAssistant ? (
                                 <MenuItem value="Assistant">Assistant</MenuItem>
@@ -865,9 +936,9 @@ const Attendance: React.FC = () => {
                         </Select>
                     </FormControl>
                     {reason === "Others" && (
-                        <TextField 
-                            fullWidth label="Specify Reason" sx={{ mt: 2 }} 
-                            value={customReason} onChange={(e) => setCustomReason(e.target.value)} 
+                        <TextField
+                            fullWidth label="Specify Reason" sx={{ mt: 2 }}
+                            value={customReason} onChange={(e) => setCustomReason(e.target.value)}
                         />
                     )}
                 </DialogContent>
@@ -883,7 +954,7 @@ const Attendance: React.FC = () => {
                 <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
                     <FormControl fullWidth>
                         <InputLabel>Select Student</InputLabel>
-                        <Select 
+                        <Select
                             value={manualForm.studentId} label="Select Student"
                             onChange={(e) => setManualForm({ ...manualForm, studentId: e.target.value as string })}
                         >
@@ -896,7 +967,7 @@ const Attendance: React.FC = () => {
                     </FormControl>
                     <FormControl fullWidth>
                         <InputLabel>Select Room</InputLabel>
-                        <Select 
+                        <Select
                             value={manualForm.roomId} label="Select Room"
                             onChange={(e) => setManualForm({ ...manualForm, roomId: e.target.value as string })}
                         >
@@ -905,13 +976,13 @@ const Attendance: React.FC = () => {
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField 
-                        label="Date" type="date" fullWidth InputLabelProps={{ shrink: true }} 
-                        value={manualForm.date} onChange={(e) => setManualForm({ ...manualForm, date: e.target.value })} 
+                    <TextField
+                        label="Date" type="date" fullWidth InputLabelProps={{ shrink: true }}
+                        value={manualForm.date} onChange={(e) => setManualForm({ ...manualForm, date: e.target.value })}
                     />
                     <FormControl fullWidth>
                         <InputLabel>Shift</InputLabel>
-                        <Select 
+                        <Select
                             value={manualForm.shift} label="Shift"
                             onChange={(e) => setManualForm({ ...manualForm, shift: e.target.value as string })}
                         >
@@ -921,7 +992,7 @@ const Attendance: React.FC = () => {
                     </FormControl>
                     <FormControl fullWidth>
                         <InputLabel>Status</InputLabel>
-                        <Select 
+                        <Select
                             value={manualForm.status} label="Status"
                             onChange={(e) => setManualForm({ ...manualForm, status: e.target.value as string })}
                         >

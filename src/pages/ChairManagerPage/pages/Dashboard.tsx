@@ -167,7 +167,6 @@ const Dashboard : React.FC = () => {
     const handleSubmit = async () => {
         try {
             const formattedDate = formData.date ? dayjs(formData.date).format('YYYY-MM-DD') : null;
-
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
@@ -175,11 +174,11 @@ const Dashboard : React.FC = () => {
             }
 
             const selectedSection = sections.find(s => s.section_name === formData.section);
-
             if (!selectedSection) {
                 throw new Error('Selected section not found');
             }
 
+            // Slot verification checks...
             const { data: slotTaken, error: slotCheckError } = await supabase
                 .from('chair_manager_assignment')
                 .select('assignment_id')
@@ -229,9 +228,43 @@ const Dashboard : React.FC = () => {
 
             if (error) throw error;
 
-            // Re-fetch pending requests to display transformed nested room details cleanly
-            await fetchPendingRequests();
+            // NOTIFICATION TO CLINICAL ADMINS
+            try {
+                // Step A: Fetch the student's name
+                const { data: studentProfile } = await supabase
+                    .from('profiles')
+                    .select('first_name, last_name')
+                    .eq('profile_id', user.id)
+                    .maybeSingle();
 
+                const studentName = studentProfile
+                    ? `${studentProfile.first_name} ${studentProfile.last_name}`
+                    : "A student";
+
+                // Step B: Fetch Clinical Admin IDs
+                const { data: admins } = await supabase
+                    .from('profiles')
+                    .select('profile_id')
+                    .eq('role_id', 1);
+
+                if (admins && admins.length > 0) {
+                    const prettyDate = dayjs(formattedDate).format('MMMM D, YYYY');
+
+                    const notificationPayloads = admins.map(admin => ({
+                        user_id: admin.profile_id,
+                        type: 'incoming_request',
+                        title: 'Request for Chair Manager',
+                        message: `${studentName} requested to be a chair manager for ${prettyDate} (${formData.shift}) on ${formData.section}. Please review the request in the Requests section to accept or reject it.`,
+                        is_read: false
+                    }));
+
+                    await supabase.from('notifications').insert(notificationPayloads);
+                }
+            } catch (notifErr) {
+                console.error('Non-blocking notification generation failure:', notifErr);
+            }
+
+            await fetchPendingRequests();
             setFormData({ room: '', section: '', shift: '', date: null });
             handleClose();
 
@@ -349,12 +382,58 @@ const Dashboard : React.FC = () => {
         if (!selectedAssignmentId) return;
 
         try {
+            // Fetch targeted data details before cancellation changes status
+            const { data: targetReq } = await supabase
+                .from('chair_manager_assignment')
+                .select(`
+                student_id, date, shift,
+                sections:section_id (section_name)
+            `)
+                .eq('assignment_id', selectedAssignmentId)
+                .maybeSingle();
+
             const { error } = await supabase
                 .from('chair_manager_assignment')
                 .update({ status: 'Cancelled' })
                 .eq('assignment_id', selectedAssignmentId);
 
             if (error) throw error;
+
+            if (targetReq) {
+                try {
+                    const { data: studentProfile } = await supabase
+                        .from('profiles')
+                        .select('first_name, last_name')
+                        .eq('profile_id', targetReq.student_id)
+                        .maybeSingle();
+
+                    const studentName = studentProfile
+                        ? `${studentProfile.first_name} ${studentProfile.last_name}`
+                        : "A student";
+
+                    const { data: admins } = await supabase
+                        .from('profiles')
+                        .select('profile_id')
+                        .eq('role_id', 1);
+
+                    if (admins && admins.length > 0) {
+                        const prettyDate = dayjs(targetReq.date).format('MMMM D, YYYY');
+                        const sectionName = targetReq.sections?.section_name || 'N/A';
+
+                        const cancellationPayloads = admins.map(admin => ({
+                            user_id: admin.profile_id,
+                            type: 'cancelled_request',
+                            title: 'Chair Manager Request Cancelled',
+                            message: `${studentName} cancelled their request for ${prettyDate} (${targetReq.shift}) on ${sectionName}. Please review other available requests for this schedule if needed.`,
+                            is_read: false
+                        }));
+
+                        await supabase.from('notifications').insert(cancellationPayloads);
+                    }
+                } catch (cancelNotifErr) {
+                    console.error('Non-blocking cancellation notification error:', cancelNotifErr);
+                }
+            }
 
             // Update UI by updating all relevant data arrays
             await fetchPendingRequests();

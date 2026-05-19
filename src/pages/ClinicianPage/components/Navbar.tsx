@@ -521,6 +521,10 @@ const ResponsiveAppBar: React.FC = () => {
                                                 )}
                                             </Box>
 
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', mb: 0.5 }}>
+                                                Tap to view full details.
+                                            </Typography>
+
                                             <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 500 }}>
                                                 {formatNotificationTime(notif.created_at)}
                                             </Typography>

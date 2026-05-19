@@ -21,6 +21,10 @@ import ClinicalAdminStudents from "./pages/ClinicalAdminPage/Students/Students.t
 import ClinicalAdminRequests from "./pages/ClinicalAdminPage/Requests/Requests.tsx";
 import ClinicalAdminAttendance from "./pages/ClinicalAdminPage/Attendance/Attendance.tsx";
 
+import AdminProfile from "./pages/ClinicalAdminPage/Profile/AdminProfile.tsx"
+import AdminEditProfile from "./pages/ClinicalAdminPage/Profile/AdminEditProfile.tsx";
+import AdminNotificationsPage from "./pages/ClinicalAdminPage/Notifications/AdminNotifications.tsx";
+
 function App() {
     const [user, setUser] = useState<any>(null);
 
@@ -48,6 +52,9 @@ function App() {
                     <Route path="/chair-manager-notifications" element={<ChairManagerNotificationsPage />} />
                 </Route>
 
+                <Route path="/admin-profile" element={<AdminProfile />} />
+                <Route path="/admin-edit-profile" element={<AdminEditProfile />} />
+                <Route path="/admin-notifications" element={<AdminNotificationsPage />} />
                 <Route element={<ClinicalAdminLayout />}>
                     <Route path="/clinicalAdminStudents" element={<ClinicalAdminStudents />} />
                     <Route path="/clinicalAdminRequests" element={<ClinicalAdminRequests />} />

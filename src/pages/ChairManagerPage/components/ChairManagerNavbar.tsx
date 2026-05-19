@@ -31,7 +31,7 @@ interface AppNotification {
 
 const pages: Page[] = [
     { name: 'Dashboard', path: '/chair-manager-home', icon: <DashboardIcon fontSize="small" /> },
-    { name: 'View History', path: '/chair-manager/history', icon: <HistoryIcon fontSize="small" /> },
+    { name: 'History', path: '/chair-manager/history', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 const ResponsiveAppBar: React.FC = () => {
@@ -616,6 +616,10 @@ const ResponsiveAppBar: React.FC = () => {
                                                     <Box sx={{ width: 8, height: 8, bgcolor: '#493979', borderRadius: '50%', ml: 1 }} />
                                                 )}
                                             </Box>
+
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', mb: 0.5 }}>
+                                                Tap to view full details.
+                                            </Typography>
 
                                             <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 500 }}>
                                                 {formatNotificationTime(notif.created_at)}
