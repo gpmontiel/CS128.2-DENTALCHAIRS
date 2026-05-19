@@ -4,6 +4,7 @@ import { supabase } from "../../utils/supabase.ts";
 import { Box, Container, TextField, Button, Typography, InputAdornment,
     IconButton, Snackbar, Alert, Paper,} from "@mui/material";
 import { Visibility, VisibilityOff, WarningAmber } from "@mui/icons-material";
+import logoLight from "../../assets/logo-light.png"
 
 interface LoginPageProps {
     onLoginSuccess: (profile: any) => void;
@@ -91,7 +92,7 @@ const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
             {/* logo and title */}
             <Box textAlign="center" mb={5}>
                 <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                    <img src="/src/assets/logo-light.png" alt="Logo" width={70} />
+                    <img src={logoLight} alt="Logo" width={70} />
                     <Typography
                         variant="h3"
                         sx={{
