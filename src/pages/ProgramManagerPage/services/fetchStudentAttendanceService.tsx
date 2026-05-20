@@ -43,16 +43,18 @@ export const fetchStudentAttendanceService = async (
   // STEP 1: GET APPROVED REQUESTS (ONLY THIS STUDENT)
   // =========================
   const { data: schedules, error: scheduleError } = await supabase
-    .from("dental_chairs_request_assignment")
-    .select(`
-      request_id,
-      student_id,
-      date,
-      shift,
-      section_id
-    `)
-    .eq("status", "Accepted")
-    .eq("student_id", studentId);
+      .from("dental_chairs_request_assignment")
+      .select(`
+    request_id,
+    student_id,
+    date,
+    shift,
+    section_id,
+    assistant_id
+  `)
+      .eq("status", "Accepted")
+      // Highlights the OR condition: student_id matches OR assistant_id matches
+      .or(`student_id.eq.${studentId},assistant_id.eq.${studentId}`);
 
   if (scheduleError) throw scheduleError;
 
