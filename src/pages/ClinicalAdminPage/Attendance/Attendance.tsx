@@ -4,13 +4,14 @@ import {
     ListItemAvatar, ListItemText, Avatar, Paper, CircularProgress, Chip,
     Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
     InputLabel, Select, MenuItem, TextField, Divider,
-    Snackbar, Alert // <-- 1. Imported Snackbar and Alert components
+    Snackbar, Alert
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarsIcon from '@mui/icons-material/Stars';
 import ChairIcon from '@mui/icons-material/Chair';
 import PeopleIcon from '@mui/icons-material/People';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { supabase } from "../../../utils/supabase";
 import dayjs from "dayjs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -71,7 +72,7 @@ const Attendance: React.FC = () => {
         studentId: "", roomId: "", sectionId: "", date: dayjs().format('YYYY-MM-DD'), shift: "AM", status: "Present", reason: "Case Discussion", customReason: ""
     });
 
-    // --- 2. FLOATING TOAST NOTIFICATION STATE ---
+    // --- FLOATING TOAST NOTIFICATION STATE ---
     const [toast, setToast] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
         open: false,
         message: "",
@@ -175,7 +176,7 @@ const Attendance: React.FC = () => {
             .eq('status', 'Present')
             .is('request_id', null);
 
-        let chairsCount = activeAssignments ? activeAssignments.length : 0;
+        const chairsCount = activeAssignments ? activeAssignments.length : 0;
         let studentsCount = 0;
 
         if (activeAssignments) {
@@ -384,7 +385,6 @@ const Attendance: React.FC = () => {
                 studentId: "", roomId: "", sectionId: "", date: dayjs().format('YYYY-MM-DD'), shift: "AM", status: "Present", reason: "Case Discussion", customReason: ""
             });
 
-            // --- 3. TRIGGER TOAST NOTIFICATION ON SUCCESS ---
             setToast({
                 open: true,
                 message: "Attendance entry added successfully!",
@@ -394,7 +394,6 @@ const Attendance: React.FC = () => {
             if (selectedRoom) await fetchAttendance(selectedRoom.id);
             await fetchDashboardMetrics();
         } catch (error: any) {
-            // Trigger failure message if database constraint flags an error
             setToast({
                 open: true,
                 message: "Failed to add log: " + error.message,
@@ -485,7 +484,7 @@ const Attendance: React.FC = () => {
                     </Box>
                 </Box>
 
-                <Box sx={{ position: 'relative', width: '100%' }}>
+                <Box sx={{ position: 'relative', width: '100%', mb: 3 }}>
                     <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, px: 0.5, fontWeight: 500 }}>
                         Scroll horizontally to change target date:
                     </Typography>
@@ -520,6 +519,41 @@ const Attendance: React.FC = () => {
                                 </Box>
                             );
                         })}
+                    </Box>
+
+                    <Box sx={{ mt: 1.5, px: 0.5 }}>
+                        <TextField
+                            label="or choose custom date"
+                            type="date"
+                            fullWidth
+                            size="small"
+                            InputLabelProps={{ shrink: true }}
+                            value={selectedDate.format('YYYY-MM-DD')}
+                            onChange={(e) => {
+                                if(e.target.value) {
+                                    setSelectedDate(dayjs(e.target.value));
+                                }
+                            }}
+                            InputProps={{
+                                startAdornment: (
+                                    <CalendarMonthIcon sx={{ color: '#5c51b6', mr: 1, fontSize: '1.2rem' }} />
+                                ),
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    bgcolor: '#f8fafc',
+                                    '& fieldset': { borderColor: '#e2e8f0' },
+                                    '&:hover fieldset': { borderColor: '#5c51b6' },
+                                    '&.Mui-focused fieldset': { borderColor: '#5c51b6' }
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontFamily: 'Poppins',
+                                    fontWeight: 500,
+                                    color: '#64748b'
+                                }
+                            }}
+                        />
                     </Box>
                 </Box>
 
@@ -799,12 +833,12 @@ const Attendance: React.FC = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* --- 4. SNACKBAR NOTIFICATION CONTAINER VIEW --- */}
+            {/* --- SNACKBAR NOTIFICATION CONTAINER VIEW --- */}
             <Snackbar
                 open={toast.open}
-                autoHideDuration={4000} // Dismisses automatically after 4 seconds
+                autoHideDuration={4000}
                 onClose={handleCloseToast}
-                anchorOrigin={{ vertical: "top", horizontal: "center" }} // Centers it at the top of the viewport
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
                 <Alert
                     onClose={handleCloseToast}
