@@ -418,7 +418,7 @@ const Attendance: React.FC = () => {
                         Overview
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mt: 0.25 }}>
-                        {dayjs().format('dddd, MMMM DD, YYYY')}
+                        Today is <strong>{dayjs().format('dddd, MMMM DD, YYYY')}</strong>
                     </Typography>
                 </Box>
 
