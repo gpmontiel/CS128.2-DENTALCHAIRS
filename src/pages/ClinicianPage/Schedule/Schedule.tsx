@@ -23,8 +23,8 @@ type Schedule = {
         section_name: string;
         rooms?: {
             room_name: string;
-        }[];
-    }[];
+        };
+    };
 };
 
 type AssistantProfile = {
@@ -113,8 +113,8 @@ const Schedule = () => {
             if (error) {
                 console.error(error);
             } else {
-                console.log("Fetched Data:", data); 
-                setSchedules(data || []);
+                console.log("Fetched Data:", data);
+                setSchedules((data as unknown as Schedule[]) || []);
             }
 
             setLoading(false); 
@@ -356,7 +356,7 @@ const Schedule = () => {
                 setSnackbarOpen(true);
 
                 const formattedDate = dayjs(selectedSchedule.date).format("MMMM D, YYYY");
-                const sectionName = selectedSchedule.sections?.[0]?.section_name || "Unknown Section";
+                const sectionName = selectedSchedule.sections?.section_name || "Unknown Section";
 
                 const { data: chairManagerAssignment, error: chairManagerError } = await supabase
                     .from("chair_manager_assignment")
@@ -418,8 +418,8 @@ const Schedule = () => {
                 .eq("status", "Accepted")
                 .order("date", { ascending: true })
                 .order("shift", { ascending: true });
-            
-            setSchedules(updatedData || []);
+
+            setSchedules((updatedData as unknown as Schedule[]) || []);
         }
     };
 
@@ -558,10 +558,10 @@ const Schedule = () => {
                                 
                                 <div className="room-section-display-container">
                                     <p style={{ fontSize: "23px", fontWeight: 700, fontFamily: "Poppins, sans-serif" }}>
-                                        {item.sections?.[0]?.rooms?.[0]?.room_name || "No Room"}
+                                        {item.sections?.rooms?.room_name || "No Room"}
                                     </p>
                                     <p style={{ fontSize: "15px", fontFamily: "Poppins, sans-serif" }}>
-                                        Section: {item.sections?.[0]?.section_name || "No Section"}
+                                        Section: {item.sections?.section_name || "No Section"}
                                     </p>
 
                                     {/* Display Assistant if exists */}
