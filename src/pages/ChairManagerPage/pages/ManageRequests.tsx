@@ -296,6 +296,7 @@ const ManageRequests = () => {
                                     variant="contained"
                                     color="success"
                                     startIcon={<CheckCircleIcon />}
+                                    disabled={availableSeats <= 0}
                                     sx={{
                                         textTransform: "none",
                                         backgroundColor: "#7C3AED"
@@ -361,6 +362,12 @@ const ManageRequests = () => {
 
     const handleConfirmAction = async () => {
         if (!selectedStudent || !actionType) return;
+
+        if (actionType === "accept" && availableSeats <= 0) {
+            alert("Cannot accept student. This section has reached maximum capacity.");
+            handleCloseDialog();
+            return;
+        }
 
         const newStatus = actionType === "accept" ? "Accepted" : "Rejected";
 
