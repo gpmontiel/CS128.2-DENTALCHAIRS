@@ -130,6 +130,8 @@ const RequestForm = () => {
         setChosenDate(e.target.value); 
     };
 
+    const today = dayjs().format("YYYY-MM-DD");
+
     return (
         <div className="request-form-container">
             <nav className="request-form-navbar">
@@ -161,7 +163,7 @@ const RequestForm = () => {
                     <div className="date-shift">
                         <div className="date">
                             <p className="form-input-titles">DATE</p>
-                            <input type="date" className="form-input" onChange={getDate}/>
+                            <input type="date" className="form-input" onChange={getDate} min={today}/>
                         </div>
 
                         <div className="shift">
