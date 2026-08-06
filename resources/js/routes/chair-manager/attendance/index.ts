@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::mark
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 export const mark = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ mark.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::mark
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 mark.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ mark.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::mark
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 mark.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ mark.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::mark
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 const markForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ const markForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::mark
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 markForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -57,7 +57,7 @@ mark.form = markForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 export const manual = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -72,7 +72,7 @@ manual.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 manual.url = (options?: RouteQueryOptions) => {
@@ -81,7 +81,7 @@ manual.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -91,7 +91,7 @@ manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 const manualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -101,7 +101,7 @@ const manualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> =>
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 manualForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

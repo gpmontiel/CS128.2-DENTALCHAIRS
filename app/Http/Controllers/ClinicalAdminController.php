@@ -12,7 +12,6 @@ use App\Models\Room;
 use App\Models\Section;
 use App\Models\StudentGroup;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -214,19 +213,16 @@ class ClinicalAdminController extends Controller
 
     public function manageManagerRequests(Request $request)
     {
-        // 1. Get query parameters with defaults
         $filter = $request->input('filter', 'Upcoming');
         $sortBy = $request->input('sortBy', 'created_at');
         $sortDesc = $request->boolean('sortDesc', false);
 
-        // 2. Build the query with eager loading
         $query = ChairManagerAssignment::with([
             'section',
             'clinician.user',
-            'clinician.studentGroup'
+            'clinician.studentGroup',
         ]);
 
-        // 3. Apply Filters
         if ($filter === 'Upcoming') {
             $query->where('status', 'Pending');
         } else {
@@ -235,17 +231,14 @@ class ClinicalAdminController extends Controller
                 ->whereIn('status', ['Confirmed', 'Rejected', 'Cancelled']);
         }
 
-        // 4. Apply Sorting
         $direction = $sortDesc ? 'desc' : 'asc';
         $query->orderBy($sortBy, $direction);
 
-        // 5. Format for the React Frontend
         $requests = $query->get()->map(function ($assignment) {
             $user = $assignment->clinician->user ?? null;
             $clinician = $assignment->clinician ?? null;
             $group = $clinician->studentGroup ?? null;
 
-            // Split name fallback
             $nameParts = $user ? explode(' ', $user->name, 2) : ['Unknown', 'User'];
 
             return [
@@ -273,7 +266,7 @@ class ClinicalAdminController extends Controller
                 'reqFilter' => $filter,
                 'sortBy' => $sortBy,
                 'sortDesc' => $sortDesc,
-            ]
+            ],
         ]);
     }
 
@@ -360,7 +353,7 @@ class ClinicalAdminController extends Controller
                         'section_name' => $sec->section_name,
                         'chair_count' => $sec->chair_count,
                     ];
-                })
+                }),
             ];
         });
 
@@ -377,16 +370,14 @@ class ClinicalAdminController extends Controller
         $studentRoleId = 3;
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'role_id' => 'required|exists:roles,id',
             'student_group_id' => 'nullable|exists:student_groups,id',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make('1234'),
+            'password' => Hash::make('dentrack-vv2'),
             'role_id' => $validated['role_id'],
         ]);
 
@@ -432,7 +423,7 @@ class ClinicalAdminController extends Controller
 
         $room = Room::create(['room_name' => $validated['room_name']]);
 
-        $sectionName = !empty($validated['has_custom_section']) && !empty($validated['section_name'])
+        $sectionName = ! empty($validated['has_custom_section']) && ! empty($validated['section_name'])
             ? $validated['section_name']
             : $validated['room_name'];
 
@@ -447,7 +438,7 @@ class ClinicalAdminController extends Controller
     public function updateRoom(Request $request, $id)
     {
         $validated = $request->validate([
-            'room_name' => 'required|string|unique:rooms,room_name,' . $id,
+            'room_name' => 'required|string|unique:rooms,room_name,'.$id,
         ]);
 
         Room::findOrFail($id)->update(['room_name' => $validated['room_name']]);
@@ -458,6 +449,7 @@ class ClinicalAdminController extends Controller
     public function destroyRoom($id)
     {
         Room::findOrFail($id)->delete();
+
         return back()->with('success', 'Discipline deleted successfully.');
     }
 
@@ -492,6 +484,7 @@ class ClinicalAdminController extends Controller
     public function destroySection($id)
     {
         Section::findOrFail($id)->delete();
+
         return back()->with('success', 'Section deleted successfully.');
     }
 }

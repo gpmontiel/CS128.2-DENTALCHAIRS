@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => (
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::index
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::markAttendance
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 export const markAttendance = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -97,7 +97,7 @@ markAttendance.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::markAttendance
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 markAttendance.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ markAttendance.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::markAttendance
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 markAttendance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -116,7 +116,7 @@ markAttendance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::markAttendance
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 const markAttendanceForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -126,7 +126,7 @@ const markAttendanceForm = (options?: RouteQueryOptions): RouteFormDefinition<'p
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::markAttendance
-* @see app/Http/Controllers/ClinicalAdminController.php:154
+* @see app/Http/Controllers/ClinicalAdminController.php:153
 * @route '/admin/attendance/mark'
 */
 markAttendanceForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -138,7 +138,7 @@ markAttendance.form = markAttendanceForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeManual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 export const storeManual = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -153,7 +153,7 @@ storeManual.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeManual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 storeManual.url = (options?: RouteQueryOptions) => {
@@ -162,7 +162,7 @@ storeManual.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeManual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 storeManual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ storeManual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeManual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 const storeManualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -182,7 +182,7 @@ const storeManualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeManual
-* @see app/Http/Controllers/ClinicalAdminController.php:189
+* @see app/Http/Controllers/ClinicalAdminController.php:188
 * @route '/admin/attendance/manual'
 */
 storeManualForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -194,7 +194,7 @@ storeManual.form = storeManualForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 export const manageManagerRequests = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -209,7 +209,7 @@ manageManagerRequests.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageManagerRequests.url = (options?: RouteQueryOptions) => {
@@ -218,7 +218,7 @@ manageManagerRequests.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageManagerRequests.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -228,7 +228,7 @@ manageManagerRequests.get = (options?: RouteQueryOptions): RouteDefinition<'get'
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageManagerRequests.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -238,7 +238,7 @@ manageManagerRequests.head = (options?: RouteQueryOptions): RouteDefinition<'hea
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 const manageManagerRequestsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -248,7 +248,7 @@ const manageManagerRequestsForm = (options?: RouteQueryOptions): RouteFormDefini
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageManagerRequestsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -258,7 +258,7 @@ manageManagerRequestsForm.get = (options?: RouteQueryOptions): RouteFormDefiniti
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageManagerRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageManagerRequestsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -275,7 +275,7 @@ manageManagerRequests.form = manageManagerRequestsForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateManagerRequestAction
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 export const updateManagerRequestAction = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -290,7 +290,7 @@ updateManagerRequestAction.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateManagerRequestAction
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 updateManagerRequestAction.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -317,7 +317,7 @@ updateManagerRequestAction.url = (args: { id: string | number } | [id: string | 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateManagerRequestAction
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 updateManagerRequestAction.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -327,7 +327,7 @@ updateManagerRequestAction.post = (args: { id: string | number } | [id: string |
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateManagerRequestAction
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 const updateManagerRequestActionForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -337,7 +337,7 @@ const updateManagerRequestActionForm = (args: { id: string | number } | [id: str
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateManagerRequestAction
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 updateManagerRequestActionForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -349,7 +349,7 @@ updateManagerRequestAction.form = updateManagerRequestActionForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 export const management = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -364,7 +364,7 @@ management.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.url = (options?: RouteQueryOptions) => {
@@ -373,7 +373,7 @@ management.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -383,7 +383,7 @@ management.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -393,7 +393,7 @@ management.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 const managementForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -403,7 +403,7 @@ const managementForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'>
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 managementForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -413,7 +413,7 @@ managementForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> =
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 managementForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -430,7 +430,7 @@ management.form = managementForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeUser
-* @see app/Http/Controllers/ClinicalAdminController.php:375
+* @see app/Http/Controllers/ClinicalAdminController.php:368
 * @route '/admin/management/users'
 */
 export const storeUser = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -445,7 +445,7 @@ storeUser.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeUser
-* @see app/Http/Controllers/ClinicalAdminController.php:375
+* @see app/Http/Controllers/ClinicalAdminController.php:368
 * @route '/admin/management/users'
 */
 storeUser.url = (options?: RouteQueryOptions) => {
@@ -454,7 +454,7 @@ storeUser.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeUser
-* @see app/Http/Controllers/ClinicalAdminController.php:375
+* @see app/Http/Controllers/ClinicalAdminController.php:368
 * @route '/admin/management/users'
 */
 storeUser.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -464,7 +464,7 @@ storeUser.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeUser
-* @see app/Http/Controllers/ClinicalAdminController.php:375
+* @see app/Http/Controllers/ClinicalAdminController.php:368
 * @route '/admin/management/users'
 */
 const storeUserForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -474,7 +474,7 @@ const storeUserForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'>
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeUser
-* @see app/Http/Controllers/ClinicalAdminController.php:375
+* @see app/Http/Controllers/ClinicalAdminController.php:368
 * @route '/admin/management/users'
 */
 storeUserForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -486,7 +486,7 @@ storeUser.form = storeUserForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::reassignStudentGroup
-* @see app/Http/Controllers/ClinicalAdminController.php:403
+* @see app/Http/Controllers/ClinicalAdminController.php:394
 * @route '/admin/management/users/{id}/student-info'
 */
 export const reassignStudentGroup = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -501,7 +501,7 @@ reassignStudentGroup.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::reassignStudentGroup
-* @see app/Http/Controllers/ClinicalAdminController.php:403
+* @see app/Http/Controllers/ClinicalAdminController.php:394
 * @route '/admin/management/users/{id}/student-info'
 */
 reassignStudentGroup.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -528,7 +528,7 @@ reassignStudentGroup.url = (args: { id: string | number } | [id: string | number
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::reassignStudentGroup
-* @see app/Http/Controllers/ClinicalAdminController.php:403
+* @see app/Http/Controllers/ClinicalAdminController.php:394
 * @route '/admin/management/users/{id}/student-info'
 */
 reassignStudentGroup.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -538,7 +538,7 @@ reassignStudentGroup.put = (args: { id: string | number } | [id: string | number
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::reassignStudentGroup
-* @see app/Http/Controllers/ClinicalAdminController.php:403
+* @see app/Http/Controllers/ClinicalAdminController.php:394
 * @route '/admin/management/users/{id}/student-info'
 */
 const reassignStudentGroupForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -553,7 +553,7 @@ const reassignStudentGroupForm = (args: { id: string | number } | [id: string | 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::reassignStudentGroup
-* @see app/Http/Controllers/ClinicalAdminController.php:403
+* @see app/Http/Controllers/ClinicalAdminController.php:394
 * @route '/admin/management/users/{id}/student-info'
 */
 reassignStudentGroupForm.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -570,7 +570,7 @@ reassignStudentGroup.form = reassignStudentGroupForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyUser
-* @see app/Http/Controllers/ClinicalAdminController.php:415
+* @see app/Http/Controllers/ClinicalAdminController.php:406
 * @route '/admin/management/users/{id}'
 */
 export const destroyUser = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -585,7 +585,7 @@ destroyUser.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyUser
-* @see app/Http/Controllers/ClinicalAdminController.php:415
+* @see app/Http/Controllers/ClinicalAdminController.php:406
 * @route '/admin/management/users/{id}'
 */
 destroyUser.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -612,7 +612,7 @@ destroyUser.url = (args: { id: string | number } | [id: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyUser
-* @see app/Http/Controllers/ClinicalAdminController.php:415
+* @see app/Http/Controllers/ClinicalAdminController.php:406
 * @route '/admin/management/users/{id}'
 */
 destroyUser.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -622,7 +622,7 @@ destroyUser.delete = (args: { id: string | number } | [id: string | number ] | s
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyUser
-* @see app/Http/Controllers/ClinicalAdminController.php:415
+* @see app/Http/Controllers/ClinicalAdminController.php:406
 * @route '/admin/management/users/{id}'
 */
 const destroyUserForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -637,7 +637,7 @@ const destroyUserForm = (args: { id: string | number } | [id: string | number ] 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyUser
-* @see app/Http/Controllers/ClinicalAdminController.php:415
+* @see app/Http/Controllers/ClinicalAdminController.php:406
 * @route '/admin/management/users/{id}'
 */
 destroyUserForm.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -654,7 +654,7 @@ destroyUser.form = destroyUserForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:424
+* @see app/Http/Controllers/ClinicalAdminController.php:415
 * @route '/admin/management/rooms'
 */
 export const storeRoom = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -669,7 +669,7 @@ storeRoom.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:424
+* @see app/Http/Controllers/ClinicalAdminController.php:415
 * @route '/admin/management/rooms'
 */
 storeRoom.url = (options?: RouteQueryOptions) => {
@@ -678,7 +678,7 @@ storeRoom.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:424
+* @see app/Http/Controllers/ClinicalAdminController.php:415
 * @route '/admin/management/rooms'
 */
 storeRoom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -688,7 +688,7 @@ storeRoom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:424
+* @see app/Http/Controllers/ClinicalAdminController.php:415
 * @route '/admin/management/rooms'
 */
 const storeRoomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -698,7 +698,7 @@ const storeRoomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'>
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:424
+* @see app/Http/Controllers/ClinicalAdminController.php:415
 * @route '/admin/management/rooms'
 */
 storeRoomForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -710,7 +710,7 @@ storeRoom.form = storeRoomForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:447
+* @see app/Http/Controllers/ClinicalAdminController.php:438
 * @route '/admin/management/rooms/{id}'
 */
 export const updateRoom = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -725,7 +725,7 @@ updateRoom.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:447
+* @see app/Http/Controllers/ClinicalAdminController.php:438
 * @route '/admin/management/rooms/{id}'
 */
 updateRoom.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -752,7 +752,7 @@ updateRoom.url = (args: { id: string | number } | [id: string | number ] | strin
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:447
+* @see app/Http/Controllers/ClinicalAdminController.php:438
 * @route '/admin/management/rooms/{id}'
 */
 updateRoom.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -762,7 +762,7 @@ updateRoom.put = (args: { id: string | number } | [id: string | number ] | strin
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:447
+* @see app/Http/Controllers/ClinicalAdminController.php:438
 * @route '/admin/management/rooms/{id}'
 */
 const updateRoomForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -777,7 +777,7 @@ const updateRoomForm = (args: { id: string | number } | [id: string | number ] |
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:447
+* @see app/Http/Controllers/ClinicalAdminController.php:438
 * @route '/admin/management/rooms/{id}'
 */
 updateRoomForm.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -794,7 +794,7 @@ updateRoom.form = updateRoomForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:458
+* @see app/Http/Controllers/ClinicalAdminController.php:449
 * @route '/admin/management/rooms/{id}'
 */
 export const destroyRoom = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -809,7 +809,7 @@ destroyRoom.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:458
+* @see app/Http/Controllers/ClinicalAdminController.php:449
 * @route '/admin/management/rooms/{id}'
 */
 destroyRoom.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -836,7 +836,7 @@ destroyRoom.url = (args: { id: string | number } | [id: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:458
+* @see app/Http/Controllers/ClinicalAdminController.php:449
 * @route '/admin/management/rooms/{id}'
 */
 destroyRoom.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -846,7 +846,7 @@ destroyRoom.delete = (args: { id: string | number } | [id: string | number ] | s
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:458
+* @see app/Http/Controllers/ClinicalAdminController.php:449
 * @route '/admin/management/rooms/{id}'
 */
 const destroyRoomForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -861,7 +861,7 @@ const destroyRoomForm = (args: { id: string | number } | [id: string | number ] 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroyRoom
-* @see app/Http/Controllers/ClinicalAdminController.php:458
+* @see app/Http/Controllers/ClinicalAdminController.php:449
 * @route '/admin/management/rooms/{id}'
 */
 destroyRoomForm.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -878,7 +878,7 @@ destroyRoom.form = destroyRoomForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeSection
-* @see app/Http/Controllers/ClinicalAdminController.php:464
+* @see app/Http/Controllers/ClinicalAdminController.php:456
 * @route '/admin/management/rooms/{roomId}/sections'
 */
 export const storeSection = (args: { roomId: string | number } | [roomId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -893,7 +893,7 @@ storeSection.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeSection
-* @see app/Http/Controllers/ClinicalAdminController.php:464
+* @see app/Http/Controllers/ClinicalAdminController.php:456
 * @route '/admin/management/rooms/{roomId}/sections'
 */
 storeSection.url = (args: { roomId: string | number } | [roomId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -920,7 +920,7 @@ storeSection.url = (args: { roomId: string | number } | [roomId: string | number
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeSection
-* @see app/Http/Controllers/ClinicalAdminController.php:464
+* @see app/Http/Controllers/ClinicalAdminController.php:456
 * @route '/admin/management/rooms/{roomId}/sections'
 */
 storeSection.post = (args: { roomId: string | number } | [roomId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -930,7 +930,7 @@ storeSection.post = (args: { roomId: string | number } | [roomId: string | numbe
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeSection
-* @see app/Http/Controllers/ClinicalAdminController.php:464
+* @see app/Http/Controllers/ClinicalAdminController.php:456
 * @route '/admin/management/rooms/{roomId}/sections'
 */
 const storeSectionForm = (args: { roomId: string | number } | [roomId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -940,7 +940,7 @@ const storeSectionForm = (args: { roomId: string | number } | [roomId: string | 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::storeSection
-* @see app/Http/Controllers/ClinicalAdminController.php:464
+* @see app/Http/Controllers/ClinicalAdminController.php:456
 * @route '/admin/management/rooms/{roomId}/sections'
 */
 storeSectionForm.post = (args: { roomId: string | number } | [roomId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -952,7 +952,7 @@ storeSection.form = storeSectionForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateSection
-* @see app/Http/Controllers/ClinicalAdminController.php:480
+* @see app/Http/Controllers/ClinicalAdminController.php:472
 * @route '/admin/management/sections/{id}'
 */
 export const updateSection = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -967,7 +967,7 @@ updateSection.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateSection
-* @see app/Http/Controllers/ClinicalAdminController.php:480
+* @see app/Http/Controllers/ClinicalAdminController.php:472
 * @route '/admin/management/sections/{id}'
 */
 updateSection.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -994,7 +994,7 @@ updateSection.url = (args: { id: string | number } | [id: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateSection
-* @see app/Http/Controllers/ClinicalAdminController.php:480
+* @see app/Http/Controllers/ClinicalAdminController.php:472
 * @route '/admin/management/sections/{id}'
 */
 updateSection.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -1004,7 +1004,7 @@ updateSection.put = (args: { id: string | number } | [id: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateSection
-* @see app/Http/Controllers/ClinicalAdminController.php:480
+* @see app/Http/Controllers/ClinicalAdminController.php:472
 * @route '/admin/management/sections/{id}'
 */
 const updateSectionForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1019,7 +1019,7 @@ const updateSectionForm = (args: { id: string | number } | [id: string | number 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::updateSection
-* @see app/Http/Controllers/ClinicalAdminController.php:480
+* @see app/Http/Controllers/ClinicalAdminController.php:472
 * @route '/admin/management/sections/{id}'
 */
 updateSectionForm.put = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1036,7 +1036,7 @@ updateSection.form = updateSectionForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroySection
-* @see app/Http/Controllers/ClinicalAdminController.php:492
+* @see app/Http/Controllers/ClinicalAdminController.php:484
 * @route '/admin/management/sections/{id}'
 */
 export const destroySection = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1051,7 +1051,7 @@ destroySection.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroySection
-* @see app/Http/Controllers/ClinicalAdminController.php:492
+* @see app/Http/Controllers/ClinicalAdminController.php:484
 * @route '/admin/management/sections/{id}'
 */
 destroySection.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1078,7 +1078,7 @@ destroySection.url = (args: { id: string | number } | [id: string | number ] | s
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroySection
-* @see app/Http/Controllers/ClinicalAdminController.php:492
+* @see app/Http/Controllers/ClinicalAdminController.php:484
 * @route '/admin/management/sections/{id}'
 */
 destroySection.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1088,7 +1088,7 @@ destroySection.delete = (args: { id: string | number } | [id: string | number ] 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroySection
-* @see app/Http/Controllers/ClinicalAdminController.php:492
+* @see app/Http/Controllers/ClinicalAdminController.php:484
 * @route '/admin/management/sections/{id}'
 */
 const destroySectionForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1103,7 +1103,7 @@ const destroySectionForm = (args: { id: string | number } | [id: string | number
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::destroySection
-* @see app/Http/Controllers/ClinicalAdminController.php:492
+* @see app/Http/Controllers/ClinicalAdminController.php:484
 * @route '/admin/management/sections/{id}'
 */
 destroySectionForm.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

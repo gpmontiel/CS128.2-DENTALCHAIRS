@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::action
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 export const action = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ action.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::action
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 action.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -43,7 +43,7 @@ action.url = (args: { id: string | number } | [id: string | number ] | string | 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::action
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 action.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -53,7 +53,7 @@ action.post = (args: { id: string | number } | [id: string | number ] | string |
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::action
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 const actionForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -63,7 +63,7 @@ const actionForm = (args: { id: string | number } | [id: string | number ] | str
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::action
-* @see app/Http/Controllers/ClinicalAdminController.php:280
+* @see app/Http/Controllers/ClinicalAdminController.php:273
 * @route '/admin/manage-requests/{id}/action'
 */
 actionForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

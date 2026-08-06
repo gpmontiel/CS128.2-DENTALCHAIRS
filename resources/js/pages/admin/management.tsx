@@ -615,7 +615,6 @@ export default function Management({ users, roles, studentGroups, rooms, flash, 
                 <DialogTitle sx={{ color: "#493978", fontWeight: "bold" }}>Add New User</DialogTitle>
                 <Divider />
                 <DialogContent sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2.5 }}>
-                    <TextField fullWidth label="Name" variant="outlined" size="small" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} />
                     <TextField fullWidth label="Email" type="email" variant="outlined" size="small" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} />
                     <TextField
                         fullWidth select label="Role" variant="outlined" size="small" value={newUserRoleId}

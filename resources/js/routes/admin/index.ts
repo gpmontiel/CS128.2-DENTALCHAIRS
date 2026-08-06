@@ -3,7 +3,7 @@ import manageRequests1766bd from './manage-requests'
 import managementD2a520 from './management'
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 export const home = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -18,7 +18,7 @@ home.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 home.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ home.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -47,7 +47,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 const homeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -57,7 +57,7 @@ const homeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 homeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -67,7 +67,7 @@ homeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::home
-* @see app/Http/Controllers/ClinicalAdminController.php:23
+* @see app/Http/Controllers/ClinicalAdminController.php:22
 * @route '/admin/home'
 */
 homeForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -84,7 +84,7 @@ home.form = homeForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 export const manageRequests = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -99,7 +99,7 @@ manageRequests.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageRequests.url = (options?: RouteQueryOptions) => {
@@ -108,7 +108,7 @@ manageRequests.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageRequests.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -118,7 +118,7 @@ manageRequests.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageRequests.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -128,7 +128,7 @@ manageRequests.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 const manageRequestsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -138,7 +138,7 @@ const manageRequestsForm = (options?: RouteQueryOptions): RouteFormDefinition<'g
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageRequestsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -148,7 +148,7 @@ manageRequestsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::manageRequests
-* @see app/Http/Controllers/ClinicalAdminController.php:215
+* @see app/Http/Controllers/ClinicalAdminController.php:214
 * @route '/admin/manage-requests'
 */
 manageRequestsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -319,7 +319,7 @@ manageReports.form = manageReportsForm
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 export const management = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -334,7 +334,7 @@ management.definition = {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.url = (options?: RouteQueryOptions) => {
@@ -343,7 +343,7 @@ management.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -353,7 +353,7 @@ management.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 management.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -363,7 +363,7 @@ management.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 const managementForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -373,7 +373,7 @@ const managementForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'>
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 managementForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -383,7 +383,7 @@ managementForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> =
 
 /**
 * @see \App\Http\Controllers\ClinicalAdminController::management
-* @see app/Http/Controllers/ClinicalAdminController.php:327
+* @see app/Http/Controllers/ClinicalAdminController.php:320
 * @route '/admin/management'
 */
 managementForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
